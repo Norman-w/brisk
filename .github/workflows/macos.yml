@@ -74,6 +74,9 @@ jobs:
       - name: Set macOS Deployment Target
         run: sed -i '' "s/platform :osx, .*$/platform :osx, '12.0'/" macos/Podfile
 
+      - name: Remove pubspec.lock
+        run: rm -f pubspec.lock
+
       - name: Get dependencies
         run: flutter pub get
 
