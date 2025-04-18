@@ -68,11 +68,12 @@ jobs:
       - name: Remove RunnerTests target from Podfile
         run: sed -i '' "/^target 'RunnerTests' do/,/^end/d" macos/Podfile
 
-      - name: Replace macos files
+      - name: Show Xcode Config Contents
         run: |
-         mv packaging macos/
-         cp -f Release.entitlements macos/Runner/
-         cp -rf Assets.xcassets macos/Runner/
+          echo "--- Contents of AppInfo.xcconfig before modification ---"
+          cat macos/Runner/Configs/AppInfo.xcconfig || echo "AppInfo.xcconfig not found or empty"
+          echo "--- Contents of Release.xcconfig before modification ---"
+          cat macos/Runner/Configs/Release.xcconfig || echo "Release.xcconfig not found or empty"
 
       - name: Set macOS Deployment Target
         run: sed -i '' "s/platform :osx, .*$/platform :osx, '12.0'/" macos/Podfile
