@@ -42,13 +42,13 @@ jobs:
       - name: Install flutter
         uses: subosito/flutter-action@v2.14.0
         with:
-          flutter-version: "3.27.0"
+          flutter-version: "3.24.0"
           channel: 'stable'
           cache: true
           cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
           cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
 
-      - name: Enable linux-desktop for flutter
+      - name: Enable macos-desktop for flutter
         run: flutter config --enable-macos-desktop && export PATH="$PATH":"$HOME/.pub-cache/bin"
 
       - name: Copy MacOS related files
