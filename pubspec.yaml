@@ -56,7 +56,7 @@ dependencies:
   launch_at_startup: ^0.5.1
   dartx: ^1.2.0
   encrypt: ^5.0.3
-  omni_datetime_picker: ^2.1.0
+  omni_datetime_picker: 2.1.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
