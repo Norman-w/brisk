@@ -8,26 +8,15 @@ on:
 jobs:
   version:
     runs-on: windows-latest
-    permissions:
-      contents: read
-    outputs:
-      version: ${{ steps.extract_version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v4.1.5
 
-      - name: Extract Version from pubspec.yaml
-        id: extract_version
-        run: |
-          $VERSION = Select-String  -Path ".\pubspec.yaml" -Pattern "version: (\d+\.\d+\.\d+)" -CaseSensitive | ForEach-Object{ $_.Matches.Groups[1].Value }
-          echo version=$VERSION >> $env:GITHUB_OUTPUT
-
-  Build-macos:
+  prepare-environment:
     runs-on: macos-latest
     permissions:
       contents: read
     needs: version
+    outputs:
+      node-path: ${{ steps.set-node-path.outputs.node-path }}
     steps:
-
       - name: Checkout the code
         uses: actions/checkout@v4.1.5
 
@@ -42,12 +31,25 @@ jobs:
       - name: Install flutter
         uses: subosito/flutter-action@v2.14.0
         with:
-          flutter-version: "3.24.0"
+          flutter-version: "3.27.0"
           channel: 'stable'
           cache: true
           cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
           cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
+      - name: Extract Version from pubspec.yaml
+        id: extract_version
+        run: |
+          $VERSION = Select-String  -Path ".\pubspec.yaml" -Pattern "version: (\d+\.\d+\.\d+)" -CaseSensitive | ForEach-Object{ $_.Matches.Groups[1].Value }
+          echo version=$VERSION >> $env:GITHUB_OUTPUT
 
+  configure-flutter:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    needs: prepare-environment
+    outputs:
+      flutter-ready: true
+    steps:
       - name: Enable macos-desktop for flutter
         run: flutter config --enable-macos-desktop && export PATH="$PATH":"$HOME/.pub-cache/bin"
 
@@ -71,14 +73,17 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+  build-macos:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    needs: configure-flutter
+    steps:
       - name: Install flutter_distributor
         run: dart pub global activate flutter_distributor
 
       - name: Start the build process
         run: flutter_distributor package --platform macos --targets dmg
-
-      - name: Debug
-        run: ls dist/${{ needs.version.outputs.version }}
 
       - name: Rename dmg File
         run: mv dist/${{ needs.version.outputs.version }}/brisk-${{ needs.version.outputs.version }}+${{ needs.version.outputs.version }}-macos.dmg ./Brisk-${{ needs.version.outputs.version }}-macos-x64.dmg
@@ -93,7 +98,7 @@ jobs:
 
   Release:
     runs-on: ubuntu-latest
-    needs: [Build-macos, version]
+    needs: [build-macos, version]
     permissions:
       contents: write
     steps:
