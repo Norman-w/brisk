@@ -48,11 +48,6 @@ jobs:
           cache: true
           cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
           cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
-      - name: Extract Version from pubspec.yaml
-        id: extract_version
-        run: |
-          $VERSION = Select-String  -Path ".\pubspec.yaml" -Pattern "version: (\d+\.\d+\.\d+)" -CaseSensitive | ForEach-Object{ $_.Matches.Groups[1].Value }
-          echo version=$VERSION >> $env:GITHUB_OUTPUT
 
   configure-flutter:
     runs-on: macos-latest
