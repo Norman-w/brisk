@@ -1,3 +1,4 @@
+name: Macos Release
 on:
   workflow_dispatch:
 
