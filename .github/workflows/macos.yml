@@ -38,7 +38,7 @@ jobs:
         run: npm install -g appdmg
 
       - name: Install flutter
-        uses: subosito/flutter-action@v2.14.0
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: "latest"
           channel: 'stable'
