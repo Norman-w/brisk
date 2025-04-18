@@ -162,8 +162,10 @@ class DownloadQueueTopMenu extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => ConfirmationDialog(
-        title:
-            "Are you sure you want to remove the selected downloads from the queue?",
+        title: "Are you sure you want to remove the selected downloads from the queue?",
+        description: "This action cannot be undone.",
+        confirmButtonText: "Remove",
+        confirmButtonWidth: 100,
         onConfirmPressed: () async {
           final queue = HiveUtil.instance.downloadQueueBox
               .get(queueProvider.selectedQueueId)!;

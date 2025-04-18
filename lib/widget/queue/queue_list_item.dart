@@ -63,8 +63,12 @@ class QueueListItem extends StatelessWidget {
       barrierDismissible: false,
       context: context,
       builder: (context) => ConfirmationDialog(
+          title: "Are you sure you want to delete ${queue.name} queue?",
+          description: "All downloads within this queue will also be removed.",
+          confirmButtonText: "Delete",
+          confirmButtonWidth: 100,
           onConfirmPressed: () async => await provider.deleteQueue(queue),
-          title: "Are you sure you want to delete ${queue.name} queue?"),
+      ),
     );
   }
 

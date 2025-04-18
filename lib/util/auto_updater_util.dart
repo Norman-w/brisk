@@ -6,7 +6,6 @@ import 'package:brisk/db/hive_util.dart';
 import 'package:brisk/model/setting.dart';
 import 'package:brisk/util/parse_util.dart';
 import 'package:brisk/widget/base/confirmation_dialog.dart';
-import 'package:brisk/widget/base/delete_confirmation_dialog.dart';
 import 'package:brisk/widget/base/error_dialog.dart';
 import 'package:brisk/widget/base/info_dialog.dart';
 import 'package:brisk/widget/download/update_available_dialog.dart';
