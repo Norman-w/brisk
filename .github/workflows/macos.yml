@@ -21,7 +21,7 @@ jobs:
           echo version=$VERSION >> $env:GITHUB_OUTPUT
 
   Build-macos:
-    runs-on: macos-latest
+    runs-on: macos-13
     permissions:
       contents: read
     needs: Version
@@ -40,7 +40,7 @@ jobs:
       - name: Install flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "latest"
+          flutter-version: "3.19.6"
           channel: 'stable'
           cache: true
           cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
@@ -70,6 +70,9 @@ jobs:
          mv packaging macos/
          cp -f Release.entitlements macos/Runner/
          cp -rf Assets.xcassets macos/Runner/
+
+      - name: Set macOS Deployment Target
+        run: sed -i '' "s/platform :osx, .*$/platform :osx, '12.0'/" macos/Podfile
 
       - name: Get dependencies
         run: flutter pub get
