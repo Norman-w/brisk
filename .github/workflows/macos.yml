@@ -85,9 +85,13 @@ jobs:
 
       - name: Set macOS Deployment Target in Xcode Config
         run: |
+          echo "Setting MACOSX_DEPLOYMENT_TARGET to 12.0 in config files..."
           sed -i '' "s/MACOSX_DEPLOYMENT_TARGET = .*$/MACOSX_DEPLOYMENT_TARGET = 12.0/" macos/Runner/Configs/AppInfo.xcconfig
-          echo "Updated MACOSX_DEPLOYMENT_TARGET in AppInfo.xcconfig:"
+          sed -i '' "s/MACOSX_DEPLOYMENT_TARGET = .*$/MACOSX_DEPLOYMENT_TARGET = 12.0/" macos/Runner/Configs/Release.xcconfig
+          echo "--- AppInfo.xcconfig --- "
           grep "MACOSX_DEPLOYMENT_TARGET" macos/Runner/Configs/AppInfo.xcconfig | cat
+          echo "--- Release.xcconfig --- "
+          grep "MACOSX_DEPLOYMENT_TARGET" macos/Runner/Configs/Release.xcconfig | cat
 
       - name: Install flutter distributor
         run: dart pub global activate flutter_distributor
