@@ -21,13 +21,11 @@ jobs:
           $VERSION = Select-String  -Path ".\pubspec.yaml" -Pattern "version: (\d+\.\d+\.\d+)" -CaseSensitive | ForEach-Object{ $_.Matches.Groups[1].Value }
           echo version=$VERSION >> $env:GITHUB_OUTPUT
 
-  prepare-environment:
+  build-macos:
     runs-on: macos-latest
     permissions:
       contents: read
     needs: version
-    outputs:
-      node-path: ${{ steps.set-node-path.outputs.node-path }}
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4.1.5
@@ -49,14 +47,6 @@ jobs:
           cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
           cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
 
-  configure-flutter:
-    runs-on: macos-latest
-    permissions:
-      contents: read
-    needs: prepare-environment
-    outputs:
-      flutter-ready: true
-    steps:
       - name: Enable macos-desktop for flutter
         run: flutter config --enable-macos-desktop && export PATH="$PATH":"$HOME/.pub-cache/bin"
 
@@ -80,12 +70,6 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-  build-macos:
-    runs-on: macos-latest
-    permissions:
-      contents: read
-    needs: configure-flutter
-    steps:
       - name: Install flutter_distributor
         run: dart pub global activate flutter_distributor
 
