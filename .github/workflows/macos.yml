@@ -96,7 +96,7 @@ jobs:
         run: dart pub global activate flutter_distributor
 
       - name: Start the build process
-        run: flutter_distributor package --platform macos --targets dmg
+        run: flutter_distributor package --platform macos --targets dmg --build-args="--macos-deployment-target=12.0"
 
       - name: Rename dmg file
         run: mv dist/${{ needs.version.outputs.version }}/brisk-${{ needs.version.outputs.version }}+${{ needs.version.outputs.version }}-macos.dmg ./Brisk-${{ needs.version.outputs.version }}-macos-x64.dmg
