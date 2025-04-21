@@ -65,38 +65,38 @@ jobs:
          rm -rf macos
          flutter create --platform macos .
 
+      - name: Set macOS Deployment Target in Project File
+        run: |
+          echo "Setting MACOSX_DEPLOYMENT_TARGET to 12.0 in project.pbxproj..."
+          # Use simple pattern matching for version 10.x to be safe
+          sed -i \'\' \'s/MACOSX_DEPLOYMENT_TARGET = 10\\..*;/MACOSX_DEPLOYMENT_TARGET = 12.0;/g\' macos/Runner.xcodeproj/project.pbxproj
+          echo "Verifying change in project.pbxproj:"
+          grep "MACOSX_DEPLOYMENT_TARGET = 12.0;" macos/Runner.xcodeproj/project.pbxproj || echo "Verification failed or target not found/set correctly"
+
       - name: Remove RunnerTests target from Podfile
-        run: sed -i '' "/^target 'RunnerTests' do/,/^end/d" macos/Podfile
+        run: sed -i \'\' "/^target \'RunnerTests\' do/,/^end/d" macos/Podfile
 
       - name: Set macOS Deployment Target in Podfile
         run: |
           echo "Setting platform target to 12.0 in Podfile..."
-          sed -i '' "s/platform :osx, .*$/platform :osx, '12.0'/" macos/Podfile
+          sed -i \'\' "s/platform :osx, .*$/platform :osx, \'12.0\'/" macos/Podfile
           echo "--- Podfile after modification --- "
           grep "platform :osx," macos/Podfile | cat
 
-      - name: Show Xcode Config Contents
+      - name: Replace macos files
         run: |
-          echo "--- Contents of AppInfo.xcconfig before modification ---"
-          cat macos/Runner/Configs/AppInfo.xcconfig || echo "AppInfo.xcconfig not found or empty"
-          echo "--- Contents of Release.xcconfig before modification ---"
-          cat macos/Runner/Configs/Release.xcconfig || echo "Release.xcconfig not found or empty"
+         mv packaging macos/
+         cp -f Release.entitlements macos/Runner/
+         cp -rf Assets.xcassets macos/Runner/
 
       - name: Get dependencies
         run: flutter pub get
-
-      - name: Set macOS Deployment Target in Xcode Config
-        run: |
-          echo "Adding MACOSX_DEPLOYMENT_TARGET = 12.0 to Release.xcconfig..."
-          echo "MACOSX_DEPLOYMENT_TARGET = 12.0" >> macos/Runner/Configs/Release.xcconfig
-          echo "--- Release.xcconfig after modification --- "
-          grep "MACOSX_DEPLOYMENT_TARGET" macos/Runner/Configs/Release.xcconfig | cat
 
       - name: Install flutter distributor
         run: dart pub global activate flutter_distributor
 
       - name: Start the build process
-        run: flutter_distributor package --platform macos --targets dmg --flutter-build-args="--macos-deployment-target 12.0"
+        run: flutter_distributor package --platform macos --targets dmg
 
       - name: Rename dmg file
         run: mv dist/${{ needs.version.outputs.version }}/brisk-${{ needs.version.outputs.version }}+${{ needs.version.outputs.version }}-macos.dmg ./Brisk-${{ needs.version.outputs.version }}-macos-x64.dmg
