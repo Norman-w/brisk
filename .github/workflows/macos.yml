@@ -29,6 +29,15 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4.1.5
 
+      - name: Install flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.0"
+          channel: 'stable'
+          cache: true
+          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
+          cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
+
       - name: Print Environment Info
         run: |
           echo "--- Flutter Version --- "
@@ -39,27 +48,24 @@ jobs:
           sw_vers
           echo "--- Xcode Version --- "
           xcodebuild -version
+          echo "--- Xcode SDKs --- "
+          xcodebuild -showsdks
           echo "--- CocoaPods Version --- "
           pod --version
           echo "--- Node Version --- "
           node --version
-
-      - name: Set up node js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      - name: Install npm dependencies
-        run: npm install -g appdmg
-
-      - name: Install flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.24.0"
-          channel: 'stable'
-          cache: true
-          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
-          cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
+          echo "--- npm Version --- "
+          npm --version
+          echo "--- Ruby Version --- "
+          ruby --version
+          echo "--- RubyGems Version --- "
+          gem --version
+          echo "--- System Info --- "
+          uname -a
+          echo "--- pubspec.lock loader_overlay --- "
+          grep loader_overlay pubspec.lock | cat
+          echo "--- Flutter Pub Deps --- "
+          flutter pub deps
 
       - name: Display Flutter and Dart version
         run: |
