@@ -81,7 +81,7 @@ jobs:
       - name: Remove RunnerTests target from Podfile
         run: |
           echo "Attempting to remove RunnerTests target from Podfile using awk..."
-          awk '/^target \'\'\'RunnerTests\'\'\' do/ { skip=1 } !skip; /^end/ && skip { skip=0; next }' macos/Podfile > macos/Podfile.tmp && mv macos/Podfile.tmp macos/Podfile
+          awk "/^target 'RunnerTests' do/ { skip=1 } !skip; /^end/ && skip { skip=0; next }" macos/Podfile > macos/Podfile.tmp && mv macos/Podfile.tmp macos/Podfile
           echo "--- Podfile after attempting removal --- "
           cat macos/Podfile
 
