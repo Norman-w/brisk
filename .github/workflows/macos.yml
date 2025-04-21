@@ -75,6 +75,9 @@ jobs:
       - name: Enable macos desktop for flutter
         run: flutter config --enable-macos-desktop && export PATH="$PATH":"$HOME/.pub-cache/bin"
 
+      - name: Ensure macos directory exists
+        run: flutter create --platform macos .
+
       - name: Remove RunnerTests target from Podfile
         run: sed -i \'\' "/^target \'RunnerTests\' do/,/^end/d" macos/Podfile
 
