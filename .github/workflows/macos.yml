@@ -75,40 +75,8 @@ jobs:
       - name: Enable macos desktop for flutter
         run: flutter config --enable-macos-desktop && export PATH="$PATH":"$HOME/.pub-cache/bin"
 
-      - name: Copy macos related files
-        run: |
-         cp macos/Runner/Release.entitlements .
-         cp -r macos/Runner/Assets.xcassets .
-         cp -r macos/packaging .
-
-      - name: Recreate macos directory
-        run: |
-         rm -rf macos
-         flutter create --platform macos .
-
-      - name: Set macOS Deployment Target in Project File
-        run: |
-          echo "Setting MACOSX_DEPLOYMENT_TARGET to 12.0 in project.pbxproj..."
-          # Use simple pattern matching for version 10.x to be safe
-          sed -i \'\' \'s/MACOSX_DEPLOYMENT_TARGET = 10\\..*;/MACOSX_DEPLOYMENT_TARGET = 12.0;/g\' macos/Runner.xcodeproj/project.pbxproj
-          echo "Verifying change in project.pbxproj:"
-          grep "MACOSX_DEPLOYMENT_TARGET = 12.0;" macos/Runner.xcodeproj/project.pbxproj || echo "Verification failed or target not found/set correctly"
-
       - name: Remove RunnerTests target from Podfile
         run: sed -i \'\' "/^target \'RunnerTests\' do/,/^end/d" macos/Podfile
-
-      - name: Set macOS Deployment Target in Podfile
-        run: |
-          echo "Setting platform target to 12.0 in Podfile..."
-          sed -i \'\' "s/platform :osx, .*$/platform :osx, \'12.0\'/" macos/Podfile
-          echo "--- Podfile after modification --- "
-          grep "platform :osx," macos/Podfile | cat
-
-      - name: Replace macos files
-        run: |
-         mv packaging macos/
-         cp -f Release.entitlements macos/Runner/
-         cp -rf Assets.xcassets macos/Runner/
 
       - name: Get dependencies
         run: flutter pub get
