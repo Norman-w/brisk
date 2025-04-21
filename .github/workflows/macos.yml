@@ -105,13 +105,13 @@ jobs:
         run: flutter_distributor package --platform macos --targets dmg
 
       - name: Rename dmg file
-        run: mv dist/${{ needs.version.outputs.version }}/brisk-${{ needs.version.outputs.version }}+${{ needs.version.outputs.version }}-macos.dmg ./Brisk-${{ needs.version.outputs.version }}-macos-x64.dmg
+        run: mv dist/${{ needs.version.outputs.version }}/brisk-${{ needs.version.outputs.version }}-macos.dmg ./Brisk-${{ needs.version.outputs.version }}-macos.dmg
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4.3.3
         with:
           name: brisk-dmg
-          path: Brisk-${{ needs.version.outputs.version }}-macos-x64.dmg
+          path: Brisk-${{ needs.version.outputs.version }}-macos.dmg
           retention-days: 1
 
 
@@ -140,7 +140,7 @@ jobs:
         with:
           tag_name: v${{ needs.version.outputs.version }}
           body_path: ./.github/release.md
-          files: ./Brisk-${{ needs.version.outputs.version }}-macos-x64.dmg
+          files: ./Brisk-${{ needs.version.outputs.version }}-macos.dmg
 
 
 
