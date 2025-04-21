@@ -78,11 +78,11 @@ jobs:
       - name: Ensure macos directory exists
         run: flutter create --platform macos .
 
-      - name: Remove RunnerTests target from Podfile
+      - name: Remove RunnerTests target from Podfile using Dart script
         run: |
-          echo "Attempting to remove RunnerTests target from Podfile using awk..."
-          awk "/^target 'RunnerTests' do/ { skip=1 } !skip; /^end/ && skip { skip=0; next }" macos/Podfile > macos/Podfile.tmp && mv macos/Podfile.tmp macos/Podfile
-          echo "--- Podfile after attempting removal --- "
+          echo "Running Dart script to remove RunnerTests target..."
+          dart run scripts/remove_podfile_target.dart macos/Podfile
+          echo "--- Podfile after Dart script modification --- "
           cat macos/Podfile
 
       - name: Get dependencies
