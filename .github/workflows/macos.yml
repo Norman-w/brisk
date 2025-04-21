@@ -79,7 +79,11 @@ jobs:
         run: flutter create --platform macos .
 
       - name: Remove RunnerTests target from Podfile
-        run: sed -i \'\' "/^target \'RunnerTests\' do/,/^end/d" macos/Podfile
+        run: |
+          echo "Attempting to remove RunnerTests target from Podfile..."
+          sed -i '' "/^target \'RunnerTests\' do/,/^end/d" macos/Podfile
+          echo "--- Podfile after attempting removal --- "
+          cat macos/Podfile
 
       - name: Get dependencies
         run: flutter pub get
