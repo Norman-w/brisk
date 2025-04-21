@@ -29,6 +29,14 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4.1.5
 
+      - name: Set up node js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install npm dependencies
+        run: npm install -g appdmg
+
       - name: Install flutter
         uses: subosito/flutter-action@v2
         with:
@@ -56,6 +64,8 @@ jobs:
           node --version
           echo "--- npm Version --- "
           npm --version
+          echo "--- appdmg Version --- "
+          appdmg --version || echo "appdmg not found or version command failed"
           echo "--- Ruby Version --- "
           ruby --version
           echo "--- RubyGems Version --- "
