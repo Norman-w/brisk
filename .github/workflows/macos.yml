@@ -80,8 +80,12 @@ jobs:
 
       - name: Remove RunnerTests target from Podfile
         run: |
-          echo "Attempting to remove RunnerTests target from Podfile..."
-          sed -i '' "/^target \'RunnerTests\' do/,/^end/d" macos/Podfile
+          echo "Attempting to remove RunnerTests target from Podfile using awk..."
+          awk '/^target \'RunnerTests\' do/ { skip=1 } !skip; /^end/ && skip { skip=0; next }' macos/Podfile > macos/Podfile.tmp && mv macos/Podfile.tmp macos/Podfile
+          # awk script explanation:
+          # /^target \'RunnerTests\' do/ { skip=1 } # If line starts the block, set skip flag
+          # !skip;                               # If skip flag is NOT set, print the line (default awk action)
+          # /^end/ && skip { skip=0; next }       # If line is 'end' AND skip flag is set, unset skip flag and skip this 'end' line
           echo "--- Podfile after attempting removal --- "
           cat macos/Podfile
 
