@@ -21,7 +21,7 @@ jobs:
           echo version=$VERSION >> $env:GITHUB_OUTPUT
 
   Build-macos:
-    runs-on: macos-13
+    runs-on: macos-latest
     permissions:
       contents: read
     needs: Version
