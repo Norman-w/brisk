@@ -10,7 +10,7 @@
 
 ## :package: Installation
 
-Installation files for Windows and Linux are available at [Github Releases](https://github.com/AminBhst/brisk/releases/latest).
+Installation files for Windows, Linux, and MacOS are available at [Github Releases](https://github.com/AminBhst/brisk/releases/latest).
 
 Brisk is also available on the [Arch AUR](https://aur.archlinux.org/packages/brisk-bin).
 
@@ -23,9 +23,6 @@ To install the browser extension, please refer to the [brisk-browser-extension r
 > On Windows, if you encountered a "Windows Protected your PC" warning, click `more info -> run anyway`
 >
 > For the browser extension to work properly, disable other download manager extensions.
-
-> [!NOTE]
-> Due to not owning a Mac hardware, MacOS support is unfortunately not available.
 
 ## :rocket: Key Features
 
