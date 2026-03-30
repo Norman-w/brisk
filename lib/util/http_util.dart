@@ -3,8 +3,8 @@ import 'dart:convert';
 
 import 'package:brisk/constants/setting_options.dart';
 import 'package:brisk/model/download_item.dart';
-import 'package:brisk/setting/proxy/proxy_setting.dart';
-import 'package:brisk/util/http_client_builder.dart';
+import 'package:brisk/util/lang_utils.dart';
+import 'package:brisk_download_engine/brisk_download_engine.dart';
 import 'package:dartx/dartx.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -21,12 +21,14 @@ const Map<String, String> contentType_MultiPartByteRanges = {
 
 const Map<String, String> userAgentHeader = {
   "User-Agent":
-      "Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko;",
+      "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
 };
 
 bool checkDownloadPauseSupport(Map<String, String> headers) {
-  var value = headers['Accept-Ranges'] ?? headers['accept-ranges'];
-  return value != null && value == 'bytes';
+  final acceptsRanges = headers['Accept-Ranges'] ?? headers['accept-ranges'];
+  final contentRange = headers['content-range'] ?? headers['Content-Range'];
+  return (acceptsRanges != null && acceptsRanges == 'bytes') ||
+      contentRange.isNotNullOrBlank;
 }
 
 String? extractFilenameFromHeaders(Map<String, String> headers) {
@@ -51,6 +53,10 @@ String? extractFilenameFromHeaders(Map<String, String> headers) {
 String extractFileNameFromUrl(String url) {
   final slashIndex = url.lastIndexOf('/');
   final dotIndex = url.lastIndexOf('.');
+  final tailingStr = url.substring(slashIndex + 1);
+  if (tailingStr.contains("?")) {
+    return tailingStr.substring(0, tailingStr.indexOf("?"));
+  }
   return (url.substring(dotIndex).contains('?'))
       ? url.substring(slashIndex + 1, url.lastIndexOf('?'))
       : url.substring(slashIndex + 1);
@@ -70,14 +76,14 @@ List<int> calculateByteStartAndByteEnd(
 }
 
 Future<List<FileInfo>?> requestFileInfoBatch(
-  List<DownloadItem> downloadItems, {
-  ProxySetting? proxySetting = null,
-}) async {
+  List<DownloadItem> downloadItems,
+  HttpClientSettings? clientSettings,
+) async {
   List<FileInfo> fileInfos = [];
   for (final item in downloadItems) {
     final fileInfo = await requestFileInfo(
       item,
-      proxySetting,
+      clientSettings,
       ignoreException: true,
     ).onError((error, stackTrace) => null);
     if (fileInfo == null) continue;
@@ -89,21 +95,41 @@ Future<List<FileInfo>?> requestFileInfoBatch(
 
 Future<FileInfo?> requestFileInfo(
   DownloadItem downloadItem,
-  ProxySetting? proxySetting, {
+  HttpClientSettings? clientSettings, {
   ignoreException = false,
 }) async {
   return await sendFileInfoRequest(
     downloadItem,
+    clientSettings: clientSettings,
     ignoreException: ignoreException,
+    headers: downloadItem.requestHeaders,
   ).catchError((e) async {
     final fileInfo = await sendFileInfoRequest(
       downloadItem,
       ignoreException: ignoreException,
-      proxySetting: proxySetting,
+      clientSettings: clientSettings,
+      headers: downloadItem.requestHeaders,
       useGet: true,
     );
     return fileInfo;
   });
+}
+
+Future<String> fetchStringContent(
+  String url, {
+  HttpClientSettings? clientSettings,
+  Map<String, String>? headers,
+}) async {
+  final client = await HttpClientBuilder.buildClient(clientSettings);
+  final request = http.Request('GET', Uri.parse(url));
+  request.headers.addAll(userAgentHeader);
+  request.headers.addAll(headers ?? {});
+  final response = await client.get(Uri.parse(url), headers: headers);
+  if (response.statusCode == 200) {
+    return response.body;
+  } else {
+    throw Exception('Failed to fetch m3u8!');
+  }
 }
 
 /// Sends a HEAD request to the url given in the [downloadItem] object.
@@ -112,17 +138,23 @@ Future<FileInfo?> requestFileInfo(
 /// TODO handle status codes other than 200
 Future<FileInfo?> sendFileInfoRequest(
   DownloadItem downloadItem, {
-  ProxySetting? proxySetting = null,
+  HttpClientSettings? clientSettings = null,
   bool ignoreException = false,
   bool useGet = false,
+  Map<String, String> headers = const {},
 }) async {
   Completer<FileInfo?> completer = Completer();
   final request = http.Request(
     useGet ? "GET" : "HEAD",
     Uri.parse(downloadItem.downloadUrl),
   );
-  request.headers.addAll(userAgentHeader);
-  final client = HttpClientBuilder.buildClient(proxySetting);
+  if (!headers.containsKeyIgnoreCase("User-Agent")) {
+    request.headers.addAll(userAgentHeader);
+  }
+  if (headers.isNotEmpty) {
+    request.headers.addAll(headers);
+  }
+  final client = await HttpClientBuilder.buildClient(clientSettings);
   try {
     client
         .send(request)
@@ -167,21 +199,39 @@ Future<FileInfo?> sendFileInfoRequest(
   } catch (e) {
     completer.completeError(e);
   }
-
   return completer.future;
 }
 
-Future<dynamic> checkLatestBriskRelease() async {
+Future<dynamic> getJson(String url) async {
   Completer<dynamic> completer = Completer();
-  final response = http.Client().get(
-    Uri.parse("https://api.github.com/repos/AminBhst/brisk/releases/latest"),
-  );
+  final response = http.Client().get(Uri.parse(url));
   response.asStream().listen((event) {
     final json = jsonDecode(String.fromCharCodes(event.bodyBytes));
     completer.complete(json);
     return;
   });
   return completer.future;
+}
+
+Future<String?> getBrowserExtensionDownloadLink(String browser) async {
+  if (browser == 'brave') {
+    browser = 'chrome';
+  }
+  final json = await getJson(
+    "https://api.github.com/repos/BrisklyDev/brisk-browser-extension/releases/latest",
+  );
+  if (json['message'].toString().contains("rate limit")) {
+    return null;
+  }
+  final assets = json['assets'] as List<dynamic>;
+  for (final asset in assets) {
+    final name = asset['name'] as String;
+    final url = asset['browser_download_url'] as String;
+    if (name.contains(browser.toLowerCase())) {
+      return url;
+    }
+  }
+  return null;
 }
 
 Future<Pair<bool, String>> isNewBriskVersionAvailable({
@@ -204,7 +254,9 @@ Future<Pair<bool, String>> isNewBriskVersionAvailable({
   lastUpdateCheck.value = DateTime.now().millisecondsSinceEpoch.toString();
   await lastUpdateCheck.save();
 
-  final json = await checkLatestBriskRelease();
+  final json = await getJson(
+    "https://api.github.com/repos/AminBhst/brisk/releases/latest",
+  );
   if (json["message"].toString().contains("rate limit")) {
     throw Exception("GitHub API rate limit exceeded. Please try again later.");
   }

@@ -1,4 +1,5 @@
 import 'package:brisk/db/hive_util.dart';
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/pluto_grid_util.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/widget/base/closable_window.dart';
@@ -22,12 +23,12 @@ class _AddToQueueWindowState extends State<AddToQueueWindow> {
   @override
   Widget build(BuildContext context) {
     setDownloadQueues();
-    final theme =
-        Provider.of<ThemeProvider>(context).activeTheme.alertDialogTheme;
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
+    final loc = AppLocalizations.of(context)!;
     return AlertDialog(
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: theme.alertDialogTheme.backgroundColor,
       title: Text(
-        "Add Download To Queue",
+        loc.addDownloadToQueue,
         style: TextStyle(
             color: theme.textColor, fontWeight: FontWeight.bold, fontSize: 20),
       ),
@@ -38,7 +39,7 @@ class _AddToQueueWindowState extends State<AddToQueueWindow> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Select Queue"),
+            Text(loc.selectQueue),
             const SizedBox(height: 10),
             SizedBox(
               width: 400,
@@ -46,12 +47,20 @@ class _AddToQueueWindowState extends State<AddToQueueWindow> {
                 value: selectedValue,
                 menuMaxHeight: 200,
                 menuWidth: 400,
+                iconEnabledColor: theme.widgetTheme.dropDownColor.iconColor,
+                dropdownColor:
+                    theme.widgetTheme.dropDownColor.dropDownBackgroundColor,
                 items: downloadQueues?.map((DownloadQueue value) {
                   return DropdownMenuItem<String>(
                     value: value.name,
                     child: SizedBox(
                       width: 376,
-                      child: Text(value.name),
+                      child: Text(
+                        value.name,
+                        style: TextStyle(
+                          color: theme.widgetTheme.dropDownColor.itemTextColor,
+                        ),
+                      ),
                     ),
                   );
                 }).toList(),
@@ -63,15 +72,13 @@ class _AddToQueueWindowState extends State<AddToQueueWindow> {
       ),
       actions: [
         RoundedOutlinedButton.fromButtonColor(
-          theme.cancelButtonColor,
-          text: "Cancel",
-          width: 80,
+          theme.alertDialogTheme.declineButtonColor,
+          text: loc.btn_cancel,
           onPressed: () => Navigator.of(context).pop(),
         ),
         RoundedOutlinedButton.fromButtonColor(
-          theme.addButtonColor,
-          text: "Add To Queue",
-          width: 130,
+          theme.alertDialogTheme.acceptButtonColor,
+          text: loc.btn_addToQueue,
           onPressed: onAddPressed,
         ),
       ],

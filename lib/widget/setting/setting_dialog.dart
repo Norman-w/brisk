@@ -1,15 +1,19 @@
 import 'dart:io';
 
+import 'package:brisk/l10n/app_localizations.dart';
+import 'package:brisk/provider/locale_provider.dart';
 import 'package:brisk/provider/settings_provider.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/theme/application_theme_holder.dart';
+import 'package:brisk/util/hot_key_util.dart';
+import 'package:brisk/widget/base/error_dialog.dart';
 import 'package:brisk/widget/base/rounded_outlined_button.dart';
 import 'package:brisk/widget/setting/page/settings_page.dart';
 import 'package:brisk/widget/setting/side_menu/settings_side_menu_item.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../util/settings_cache.dart';
+import '../../setting/settings_cache.dart';
 
 class SettingsDialog extends StatefulWidget {
   const SettingsDialog({super.key});
@@ -20,22 +24,27 @@ class SettingsDialog extends StatefulWidget {
 
 class _SettingsDialogState extends State<SettingsDialog> {
   SettingsProvider? settingsProvider;
-  ThemeProvider? themeProvider;
+  late ThemeProvider themeProvider;
+  late AppLocalizations loc;
 
   @override
   Widget build(BuildContext context) {
     settingsProvider = Provider.of<SettingsProvider>(context);
     themeProvider = Provider.of<ThemeProvider>(context);
-    final settingTheme = themeProvider!.activeTheme.settingTheme;
+    final theme = themeProvider.activeTheme;
+    loc = AppLocalizations.of(context)!;
     final size = MediaQuery.of(context).size;
     return AlertDialog(
+      contentPadding: EdgeInsets.all(0),
+      titlePadding: EdgeInsets.zero,
+      insetPadding: EdgeInsets.zero,
       content: Padding(
-        padding: const EdgeInsets.only(top: 20),
+        padding: const EdgeInsets.only(top: 0),
         child: Container(
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: settingTheme.windowBackgroundColor,
+            color: theme.alertDialogTheme.backgroundColor,
           ),
           height: resolveDialogHeight(size),
           width: resolveDialogWidth(size),
@@ -43,18 +52,24 @@ class _SettingsDialogState extends State<SettingsDialog> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.only(left: 20.0),
-                child: Text(
-                  "Settings",
-                  style: TextStyle(
-                      color: Colors.white,
+              // SizedBox(height: 20),
+              Container(
+              color: theme.settingTheme.sideMenuTheme.backgroundColor,
+                width: resolveDialogWidth(size),
+                height: 77,
+                child: Padding(
+                  padding: EdgeInsetsDirectional.only(start: 20, top: 20),
+                  child: Text(
+                    loc.settings_title,
+                    style: TextStyle(
+                      color: themeProvider.activeTheme.textColor,
                       fontWeight: FontWeight.bold,
-                      fontSize: 20),
+                      fontSize: 20,
+                    ),
+                  ),
                 ),
               ),
-              SizedBox(height: 30),
+              // SizedBox(height: 30),
               Container(
                 width: resolveDialogWidth(size),
                 height: 1,
@@ -65,44 +80,43 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    // color: const Color.fromRGBO(26, 26, 26, 1.0),
-                    color: settingTheme.sideMenuTheme.backgroundColor,
+                    color: theme.settingTheme.sideMenuTheme.backgroundColor,
                     height: resolveDialogHeight(size) - 144,
                     child: SingleChildScrollView(
                       child: SizedBox(
-                        width: 150,
+                        width: 160,
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               SettingsSideMenuItem(
                                 tabId: 0,
-                                title: "General",
+                                title: loc.settings_menu_general,
                                 icon: Icons.layers_rounded,
                               ),
                               SettingsSideMenuItem(
                                 tabId: 1,
-                                title: "File",
+                                title: loc.settings_menu_file,
                                 icon: Icons.folder_open_rounded,
                               ),
                               SettingsSideMenuItem(
                                 tabId: 2,
-                                title: "Connection",
+                                title: loc.settings_menu_connection,
                                 icon: Icons.wifi,
                               ),
                               SettingsSideMenuItem(
                                 tabId: 3,
-                                title: "Extension",
+                                title: loc.settings_menu_extension,
                                 icon: Icons.extension,
                               ),
                               SettingsSideMenuItem(
                                 tabId: 4,
-                                title: "About",
+                                title: loc.settings_menu_about,
                                 icon: Icons.info,
                               ),
                               SettingsSideMenuItem(
                                 tabId: 5,
-                                title: "Bug Report",
+                                title: loc.settings_menu_bugReport,
                                 icon: Icons.bug_report_rounded,
                               ),
                             ]),
@@ -128,35 +142,36 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 color: Color.fromRGBO(65, 65, 65, 1.0),
               ),
               Container(
-                color: settingTheme.sideMenuTheme.backgroundColor,
+                color: theme.settingTheme.sideMenuTheme.backgroundColor,
                 child: Column(
                   children: [
                     const SizedBox(height: 30),
                     Transform.translate(
-                      offset: Offset(-10, -15),
+                      offset: Offset(
+                          Directionality.of(context) == TextDirection.rtl
+                              ? 10
+                              : -10,
+                          -15),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           SizedBox(width: size.width < 880 ? 10 : 20),
                           RoundedOutlinedButton.fromButtonColor(
-                            settingTheme.resetDefaultsButtonColor,
-                            text: "Reset to Defaults",
-                            width: 140,
+                            theme.settingTheme.resetDefaultsButtonColor,
+                            text: loc.btn_resetDefaults,
                             onPressed: _onResetDefaultPressed,
                           ),
                           Spacer(),
                           RoundedOutlinedButton.fromButtonColor(
-                            settingTheme.cancelButtonColor,
-                            text: "Cancel",
-                            width: 80,
+                            theme.alertDialogTheme.cancelColor,
+                            text: loc.btn_cancel,
                             onPressed: _onCancelPressed,
                           ),
                           SizedBox(width: size.width < 880 ? 10 : 20),
                           RoundedOutlinedButton.fromButtonColor(
-                            settingTheme.saveButtonColor,
-                            text: "Save Changes",
-                            width: 130,
+                            theme.settingTheme.saveButtonColor,
+                            text: loc.btn_saveChanges,
                             onPressed: _onApplyPressed,
                           ),
                         ],
@@ -189,16 +204,39 @@ class _SettingsDialogState extends State<SettingsDialog> {
     if (validatePathSettings(tempPath)) {
       SettingsCache.temporaryDir = Directory(tempPath!);
     } else {
-      settingsProvider?.tempPath = SettingsCache.temporaryDir.path;
+      settingsProvider?.setTempPath(SettingsCache.temporaryDir.path);
+      showDialog(
+        context: context,
+        builder: (context) => ErrorDialog(
+          title: loc.err_invalidPath_title,
+          description: loc.err_invalidPath_tempPath_description,
+          descriptionHint: loc.err_invalidPath_descriptionHint,
+          height: 180,
+          width: 380,
+        ),
+      );
+      return;
     }
     if (validatePathSettings(savePath)) {
       SettingsCache.saveDir = Directory(savePath!);
     } else {
       settingsProvider?.savePath = SettingsCache.saveDir.path;
+      showDialog(
+        context: context,
+        builder: (context) => ErrorDialog(
+          title: loc.err_invalidPath_title,
+          description: loc.err_invalidPath_savePath_description,
+          descriptionHint: loc.err_invalidPath_descriptionHint,
+          height: 210,
+          width: 330,
+        ),
+      );
     }
     SettingsCache.saveCachedSettingsToDB();
     ApplicationThemeHolder.setActiveTheme();
+    Provider.of<LocaleProvider>(context, listen: false).setCurrentLocale();
     themeProvider?.updateActiveTheme();
+    HotKeyUtil.registerDownloadAdditionHotKey(context);
     Navigator.of(context).pop();
   }
 

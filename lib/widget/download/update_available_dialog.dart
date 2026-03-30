@@ -1,3 +1,4 @@
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/widget/base/rounded_outlined_button.dart';
 import 'package:brisk/widget/base/scrollable_dialog.dart';
@@ -35,6 +36,7 @@ class _UpdateAvailableDialogState extends State<UpdateAvailableDialog> {
     final theme =
         Provider.of<ThemeProvider>(context, listen: false).activeTheme;
     final size = MediaQuery.of(context).size;
+    final loc = AppLocalizations.of(context)!;
     return ScrollableDialog(
       height: 280,
       width: 400,
@@ -50,7 +52,7 @@ class _UpdateAvailableDialogState extends State<UpdateAvailableDialog> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: theme.alertDialogTheme.itemContainerBackgroundColor,
+                color: theme.alertDialogTheme.surfaceColor,
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -59,7 +61,7 @@ class _UpdateAvailableDialogState extends State<UpdateAvailableDialog> {
                   height: 30,
                   "assets/icons/refresh.svg",
                   colorFilter: ColorFilter.mode(
-                    Colors.white70,
+                    theme.widgetTheme.iconColor,
                     BlendMode.srcIn,
                   ),
                 ),
@@ -72,13 +74,20 @@ class _UpdateAvailableDialogState extends State<UpdateAvailableDialog> {
               children: [
                 Text(
                   widget.isBrowserExtension
-                      ? "Extension Update Available"
-                      : "Update Available",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      ? loc.extensionUpdateAvailable
+                      : loc.updateAvailable,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: theme.textColor,
+                  ),
                 ),
                 Text(
                   widget.newVersion,
-                  style: TextStyle(fontSize: 14, color: Colors.white60),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: theme.textColor,
+                  ),
                 ),
               ],
             ),
@@ -94,14 +103,20 @@ class _UpdateAvailableDialogState extends State<UpdateAvailableDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                  "A new version of the ${widget.isBrowserExtension ? "browser extension" : "application"} is available.\nWould you like to update now?"),
+                loc.updateAvailable_description(
+                  widget.isBrowserExtension
+                      ? loc.settings_browserExtension
+                      : loc.application,
+                ),
+                style: TextStyle(color: theme.textColor),
+              ),
               const SizedBox(height: 10),
               Container(
                 width: 400,
                 height: 220,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: theme.alertDialogTheme.itemContainerBackgroundColor,
+                  color: theme.alertDialogTheme.surfaceColor,
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
@@ -110,14 +125,18 @@ class _UpdateAvailableDialogState extends State<UpdateAvailableDialog> {
                       SizedBox(
                         child: Row(
                           children: [
-                            Icon(Icons.info_rounded, color: Colors.white60),
+                            Icon(
+                              Icons.info_rounded,
+                              color: theme.widgetTheme.iconColor,
+                            ),
                             const SizedBox(width: 5),
                             Text(
-                              "What's new:",
+                              loc.whatsNew,
                               style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                  color: Colors.white60),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: theme.textColor,
+                              ),
                             )
                           ],
                         ),
@@ -127,6 +146,27 @@ class _UpdateAvailableDialogState extends State<UpdateAvailableDialog> {
                         width: 400,
                         child: Markdown(
                           data: EmojiParser().emojify(widget.changeLog),
+                          styleSheet: MarkdownStyleSheet(
+                            p: TextStyle(
+                              fontSize: 14,
+                              color: theme.textColor,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            h1: TextStyle(
+                              fontSize: 20,
+                              color: theme.textColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            h2: TextStyle(
+                              fontSize: 18,
+                              color: theme.textColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            listBullet: TextStyle(
+                              fontSize: 14,
+                              color: theme.textColor,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -144,18 +184,18 @@ class _UpdateAvailableDialogState extends State<UpdateAvailableDialog> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               RoundedOutlinedButton.fromButtonColor(
-                theme.downloadInfoDialogTheme.cancelColor,
+                theme.alertDialogTheme.cancelColor,
                 onPressed: () {
                   Navigator.of(context).pop();
                   widget.onLaterPressed?.call();
                 },
-                text: "Later",
+                text: loc.btn_later,
               ),
               const SizedBox(width: 10),
               RoundedOutlinedButton.fromButtonColor(
-                theme.downloadInfoDialogTheme.downloadColor,
+                theme.alertDialogTheme.acceptButtonColor,
                 onPressed: () => widget.onUpdatePressed(),
-                text: "Update",
+                text: loc.btn_update,
               ),
             ],
           ),

@@ -1,5 +1,5 @@
-import 'package:brisk/widget/setting/page/connection/connection_number_group.dart';
 import 'package:brisk/widget/setting/page/connection/connection_retry_group.dart';
+import 'package:brisk/widget/setting/page/connection/download_engine_group.dart';
 import 'package:brisk/widget/setting/page/connection/proxy_group.dart';
 import 'package:flutter/material.dart';
 
@@ -14,8 +14,10 @@ class ConnectionSettingsPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: const [
           ConnectionRetryGroup(),
+          const SizedBox(height: 15),
+          DownloadEngineGroup(),
+          const SizedBox(height: 15),
           ProxyGroup(),
-          ConnectionNumberGroup(),
         ],
       ),
     );

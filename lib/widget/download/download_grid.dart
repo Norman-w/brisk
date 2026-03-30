@@ -1,17 +1,21 @@
+import 'package:brisk/browser_extension/browser_extension_server.dart';
 import 'package:brisk/constants/file_type.dart';
-import 'package:brisk/download_engine/download_status.dart';
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/download_request_provider.dart';
 import 'package:brisk/provider/pluto_grid_check_row_provider.dart';
 import 'package:brisk/provider/pluto_grid_util.dart';
 import 'package:brisk/provider/queue_provider.dart';
+import 'package:brisk/provider/search_bar_notifier_provider.dart';
 import 'package:brisk/provider/theme_provider.dart';
+import 'package:brisk/theme/application_theme.dart';
 import 'package:brisk/util/file_util.dart';
-import 'package:brisk/util/responsive_util.dart';
+import 'package:brisk/util/ui_util.dart';
 import 'package:brisk/widget/download/add_url_dialog.dart';
 import 'package:brisk/widget/download/download_info_dialog.dart';
 import 'package:brisk/widget/download/download_progress_dialog.dart';
+import 'package:brisk/widget/other/automatic_url_update_dialog.dart';
+import 'package:brisk_download_engine/brisk_download_engine.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -26,11 +30,22 @@ class _DownloadGridState extends State<DownloadGrid> {
   late List<PlutoColumn> columns;
   DownloadRequestProvider? provider;
   QueueProvider? queueProvider;
-  PlutoGridCheckRowProvider? plutoProvider;
+  late PlutoGridCheckRowProvider plutoProvider;
+  late SearchBarNotifierProvider searchBarNotifier;
+  late AppLocalizations loc;
+  late ApplicationTheme theme;
 
   @override
   void didChangeDependencies() {
+    loc = AppLocalizations.of(context)!;
     initColumns(context);
+    searchBarNotifier = Provider.of<SearchBarNotifierProvider>(context);
+    theme = Provider.of<ThemeProvider>(context).activeTheme;
+    if (searchBarNotifier.showSearchBar) {
+      Future.delayed(Duration(milliseconds: 50), () {
+        _searchFocusNode.requestFocus();
+      });
+    }
     super.didChangeDependencies();
   }
 
@@ -55,92 +70,99 @@ class _DownloadGridState extends State<DownloadGrid> {
       PlutoColumn(
         enableRowChecked: true,
         width: 400,
-        title: 'File Name',
+        title: loc.fileName,
         field: 'file_name',
         type: PlutoColumnType.text(),
+        renderer: (ctx) => PlutoGridUtil.fileNameColumnRenderer(ctx, theme),
+      ),
+      PlutoColumn(
+          readOnly: true,
+          width: 90,
+          title: loc.size,
+          field: 'size',
+          type: PlutoColumnType.text(),
+          renderer: (rendererContext) {
+            return Text(
+              rendererContext.row.cells[rendererContext.column.field]!.value
+                  .toString(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: theme.downloadGridTheme.rowTextColor,
+                fontWeight: theme.fontWeight,
+              ),
+            );
+          }),
+      PlutoColumn(
+        readOnly: true,
+        width: 100,
+        title: loc.progress,
+        field: 'progress',
+        type: PlutoColumnType.text(),
         renderer: (rendererContext) {
-          final fileName = rendererContext.row.cells["file_name"]!.value;
-          final fileType = FileUtil.detectFileType(fileName);
-          return Padding(
-            padding: const EdgeInsets.only(left: 5.0),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: resolveIconSize(fileType),
-                  height: resolveIconSize(fileType),
-                  child: SvgPicture.asset(
-                    FileUtil.resolveFileTypeIconPath(fileType.name),
-                    colorFilter: ColorFilter.mode(
-                      FileUtil.resolveFileTypeIconColor(fileType.name),
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Expanded(
-                  child: Text(
-                    rendererContext
-                        .row.cells[rendererContext.column.field]!.value
-                        .toString(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
+          return Text(
+            rendererContext.row.cells[rendererContext.column.field]!.value
+                .toString(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: theme.downloadGridTheme.rowTextColor,
+              fontWeight: theme.fontWeight,
             ),
           );
         },
       ),
       PlutoColumn(
         readOnly: true,
-        width: 85,
-        title: 'Size',
-        field: 'size',
-        type: PlutoColumnType.text(),
-      ),
-      PlutoColumn(
-        readOnly: true,
-        width: 95,
-        title: 'Progress',
-        field: 'progress',
-        type: PlutoColumnType.text(),
-      ),
-      PlutoColumn(
-        readOnly: true,
         width: 130,
-        title: "Status",
+        title: loc.status,
         field: "status",
         type: PlutoColumnType.text(),
+        renderer: (rendererContext) {
+          return Text(
+            rendererContext.row.cells[rendererContext.column.field]!.value
+                .toString(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: theme.downloadGridTheme.rowTextColor,
+              fontWeight: theme.fontWeight,
+            ),
+          );
+        },
       ),
       PlutoColumn(
         readOnly: true,
         enableSorting: false,
         width: 125,
-        title: 'Transfer Rate',
+        title: loc.speed,
         field: 'transfer_rate',
         type: PlutoColumnType.text(),
+        renderer: rowText,
       ),
       PlutoColumn(
         readOnly: true,
         width: 120,
-        title: 'Time Left',
+        title: loc.timeLeft,
         field: 'time_left',
         type: PlutoColumnType.text(),
+        renderer: rowText,
       ),
       PlutoColumn(
         readOnly: true,
         width: 105,
-        title: 'Start Date',
+        title: loc.startDate,
         field: 'start_date',
         type: PlutoColumnType.date(),
+        renderer: rowText,
       ),
       PlutoColumn(
         readOnly: true,
         width: 115,
-        title: 'Finish Date',
+        title: loc.finishDate,
         field: 'finish_date',
         type: PlutoColumnType.date(),
+        renderer: rowText,
       ),
       PlutoColumn(
         readOnly: true,
@@ -149,8 +171,21 @@ class _DownloadGridState extends State<DownloadGrid> {
         title: 'File Type',
         field: 'file_type',
         type: PlutoColumnType.text(),
+        renderer: rowText,
       )
     ];
+  }
+
+  Text rowText(rendererContext) {
+    return Text(
+      rendererContext.row.cells[rendererContext.column.field]!.value.toString(),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        color: theme.downloadGridTheme.rowTextColor,
+        fontWeight: theme.fontWeight,
+      ),
+    );
   }
 
   double resolveIconSize(DLFileType fileType) {
@@ -161,6 +196,9 @@ class _DownloadGridState extends State<DownloadGrid> {
     else
       return 30;
   }
+
+  final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -173,37 +211,91 @@ class _DownloadGridState extends State<DownloadGrid> {
     );
     queueProvider = Provider.of<QueueProvider>(context);
     final size = MediaQuery.of(context).size;
+    theme = Provider.of<ThemeProvider>(context).activeTheme;
+    searchBarNotifier = Provider.of<SearchBarNotifierProvider>(context);
     return Material(
       type: MaterialType.transparency,
       child: Container(
-        height: size.height - 70,
+        height: size.height - topMenuHeight,
         width: resolveWindowWidth(size),
         decoration: const BoxDecoration(color: Colors.black26),
-        child: PlutoGrid(
-          key: UniqueKey(),
-          mode: PlutoGridMode.selectWithOneTap,
-          configuration: PlutoGridConfiguration(
-            style: PlutoGridStyleConfig.dark(
-              activatedBorderColor: Colors.transparent,
-              borderColor: downloadGridTheme.borderColor,
-              gridBorderColor: downloadGridTheme.borderColor,
-              activatedColor: downloadGridTheme.activeRowColor,
-              gridBackgroundColor: downloadGridTheme.backgroundColor,
-              rowColor: downloadGridTheme.rowColor,
-              checkedColor: downloadGridTheme.checkedRowColor,
+        child: Stack(
+          children: [
+            PlutoGrid(
+              key: ValueKey(queueProvider?.selectedQueueId ?? 'download-grid'),
+              mode: PlutoGridMode.selectWithOneTap,
+              configuration: PlutoGridUtil.config(downloadGridTheme),
+              columns: columns,
+              rows: [],
+              onSelected: (event) => PlutoGridUtil.handleRowSelection(
+                event,
+                PlutoGridUtil.plutoStateManager!,
+                plutoProvider,
+              ),
+              onRowChecked: (row) => plutoProvider.notifyListeners(),
+              onRowDoubleTap: onRowDoubleTap,
+              onLoaded: (event) => onLoaded(event, provider!, queueProvider!),
+              onRowSecondaryTap: (event) =>
+                  showSecondaryTapMenu(context, event),
+            ),
+            if (searchBarNotifier.showSearchBar) showSearchbar(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget showSearchbar() {
+    return Positioned(
+      top: 16,
+      left: 16,
+      width: 400,
+      height: 35,
+      child: Material(
+        elevation: 10,
+        color: theme.alertDialogTheme.backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: theme.alertDialogTheme.borderColor,
+              width: 1,
             ),
           ),
-          columns: columns,
-          rows: [],
-          onSelected: (event) => PlutoGridUtil.handleRowSelection(
-            event,
-            PlutoGridUtil.plutoStateManager!,
-            plutoProvider,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    style: TextStyle(color: theme.textColor),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintStyle: TextStyle(color: theme.textColor),
+                      hintText: 'Search downloads...',
+                      contentPadding: EdgeInsets.zero,
+                      border: InputBorder.none,
+                    ),
+                    onChanged: PlutoGridUtil.addSearchFilter,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.close,
+                    size: 20,
+                    color: theme.widgetTheme.iconColor,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: searchBarNotifier.toggleShow,
+                ),
+              ],
+            ),
           ),
-          onRowChecked: (row) => plutoProvider?.notifyListeners(),
-          onRowDoubleTap: onRowDoubleTap,
-          onLoaded: (event) => onLoaded(event, provider!, queueProvider!),
-          onRowSecondaryTap: (event) => showSecondaryTapMenu(context, event),
         ),
       ),
     );
@@ -215,7 +307,10 @@ class _DownloadGridState extends State<DownloadGrid> {
   ) {
     final provider =
         Provider.of<DownloadRequestProvider>(context, listen: false);
-    final theme = Provider.of<ThemeProvider>(context, listen: false);
+    final size = MediaQuery.of(context).size;
+    final loc = AppLocalizations.of(context)!;
+    final theme =
+        Provider.of<ThemeProvider>(context, listen: false).activeTheme;
     final id = event.row.cells["id"]!.value;
     final status = event.row.cells["status"]!.value;
     final downloadProgress = provider.downloads[id];
@@ -225,49 +320,94 @@ class _DownloadGridState extends State<DownloadGrid> {
         ? (downloadProgress.status != DownloadStatus.assembleComplete ||
             downloadProgress.status != DownloadStatus.downloading)
         : (!downloadComplete || status == DownloadStatus.paused);
+    final automaticUrlUpdateEnabled = updateUrlEnabled &&
+        HiveUtil.instance.downloadItemsBox.get(id)?.referer != null;
     showMenu(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: theme.contextMenuTheme.borderColor,
+          width: 1,
+        ),
       ),
-      color: theme.activeTheme.rightClickMenuBackgroundColor,
+      color: theme.contextMenuTheme.backgroundColor,
       popUpAnimationStyle: AnimationStyle(
         curve: Easing.emphasizedAccelerate,
         duration: Durations.short2,
       ),
       context: context,
-      position: RelativeRect.fromLTRB(
-        event.offset.dx,
-        event.offset.dy,
-        event.offset.dx,
-        event.offset.dy,
-      ),
+      position: Directionality.of(context) == TextDirection.rtl
+          ? RelativeRect.fromDirectional(
+              textDirection: TextDirection.rtl,
+              bottom: event.offset.dy,
+              top: event.offset.dy,
+              end: size.width - event.offset.dx,
+              start: size.width - event.offset.dx,
+            )
+          : RelativeRect.fromLTRB(
+              event.offset.dx,
+              event.offset.dy,
+              event.offset.dx,
+              event.offset.dy,
+            ),
       items: [
         PopupMenuItem(
-          value: "Open Progress Dialog",
-          child: Text("Open Progress Dialog"),
+          value: "Show Progress",
+          child: Text(
+            loc.popupMenu_showProgress,
+            style: contextMenuItemTextStyle(downloadExists),
+          ),
           enabled: downloadExists,
         ),
         PopupMenuItem(
           value: "Open File",
-          child: Text("Open File"),
+          child: Text(
+            loc.btn_openFile,
+            style: contextMenuItemTextStyle(downloadComplete),
+          ),
           enabled: downloadComplete,
         ),
         PopupMenuItem(
           value: "Open File Location",
-          child: Text("Open File Location"),
+          child: Text(
+            loc.btn_openFileLocation,
+            style: contextMenuItemTextStyle(downloadComplete),
+          ),
           enabled: downloadComplete,
         ),
         PopupMenuItem(
           value: "Update URL",
-          child: Text("Update URL"),
+          child: Text(
+            loc.btn_updateUrl,
+            style: contextMenuItemTextStyle(updateUrlEnabled),
+          ),
           enabled: updateUrlEnabled,
         ),
         PopupMenuItem(
+          value: "Automatic URL Update",
+          child: Text(
+            loc.automaticUrlUpdate,
+            style: contextMenuItemTextStyle(automaticUrlUpdateEnabled),
+          ),
+          enabled: automaticUrlUpdateEnabled,
+        ),
+        PopupMenuItem(
           value: "Properties",
-          child: Text("Properties"),
+          child: Text(
+            loc.popupMenu_properties,
+            style: contextMenuItemTextStyle(true),
+          ),
         ),
       ],
     ).then((value) => onMenuItemClicked(value, event));
+  }
+
+  TextStyle contextMenuItemTextStyle(bool enabled) {
+    return TextStyle(
+      color: enabled
+          ? theme.contextMenuTheme.itemTextColor
+          : theme.contextMenuTheme.itemDisabledTextColor,
+    );
   }
 
   void onMenuItemClicked(String? value, PlutoGridOnRowSecondaryTapEvent event) {
@@ -280,7 +420,7 @@ class _DownloadGridState extends State<DownloadGrid> {
       return;
     }
     switch (value) {
-      case "Open Progress Dialog":
+      case "Show Progress":
         showDialog(
           context: context,
           builder: (_) => DownloadProgressDialog(downloadItem.key),
@@ -298,6 +438,15 @@ class _DownloadGridState extends State<DownloadGrid> {
           context: context,
           builder: (context) =>
               AddUrlDialog(downloadId: downloadItem.key, updateDialog: true),
+        );
+        break;
+      case "Automatic URL Update":
+        launchUrlString(downloadItem.referer!);
+        BrowserExtensionServer.awaitingUpdateUrlItem = downloadItem;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AutomaticUrlUpdateDialog(),
         );
         break;
       case "Properties":
@@ -339,7 +488,7 @@ class _DownloadGridState extends State<DownloadGrid> {
           .toList();
       provider.fetchRows(downloads);
     }
-    PlutoGridUtil.plutoStateManager!.setFilter(PlutoGridUtil.filter);
+    PlutoGridUtil.setSavedFilters();
   }
 
   void onRowDoubleTap(event) {

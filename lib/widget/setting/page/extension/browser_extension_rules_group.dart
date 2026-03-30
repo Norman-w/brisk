@@ -1,12 +1,11 @@
-import 'package:brisk/setting/rule/file_condition.dart';
+import 'package:brisk/l10n/app_localizations.dart';
+import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/setting/rule/file_rule.dart';
-import 'package:brisk/setting/rule/rule_value_type.dart';
-import 'package:brisk/util/settings_cache.dart';
 import 'package:brisk/widget/setting/base/external_link_setting.dart';
-import 'package:brisk/widget/setting/base/rule/file_rule_item_editor.dart';
-import 'package:brisk/widget/setting/base/rule/rule_editor_window.dart';
+import 'package:brisk/widget/setting/base/rule/extension_skip_capture_rule_editor_dialog.dart';
 import 'package:brisk/widget/setting/base/settings_group.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class BrowserExtensionRulesGroup extends StatelessWidget {
   const BrowserExtensionRulesGroup({super.key});
@@ -14,62 +13,26 @@ class BrowserExtensionRulesGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final loc = AppLocalizations.of(context)!;
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
     return SettingsGroup(
-      height: 130,
-      title: "Rules",
+      title: loc.settings_rules,
       children: [
         ExternalLinkSetting(
-          title: "Extension Skip Capture Rules",
+          title: loc.settings_rules_extensionSkipCaptureRules,
           width: resolveLinkWidth(size),
           titleWidth: resolveTitleWidth(size),
-          linkText: "Open Rule Editor",
+          linkText: loc.settings_rules_edit,
+          customIcon: Icon(
+            Icons.edit_note_rounded,
+            color: theme.widgetTheme.iconColor,
+          ),
           onLinkPressed: () => showDialog(
-            builder: (context) => RuleEditorWindow<FileRule>(
-              ruleType: "Extension Skip Capture Rules",
-              rules: [...SettingsCache.extensionSkipCaptureRules],
-              onSavePressed: (List<FileRule> rules) {
-                SettingsCache.extensionSkipCaptureRules = rules;
-              },
-              buildItemTitle: buildRuleRow,
-              onEditPressed: (
-                FileRule rule,
-                Function(FileRule oldRule, FileRule newRule) update,
-              ) {
-                showDialog(
-                  builder: (_) => FileRuleItemEditor(
-                    condition: rule.condition,
-                    value: rule.valueWithTypeConsidered,
-                    ruleValueType: RuleValueType.fromRule(rule),
-                    onSaveClicked: (FileCondition condition, String value) {
-                      final newRule = FileRule(
-                        condition: condition,
-                        value: value,
-                      );
-                      update(rule, newRule);
-                    },
-                  ),
-                  context: context,
-                );
-              },
-              onAddPressed: (Function(FileRule) addRule) {
-                showDialog(
-                  context: context,
-                  builder: (context) => FileRuleItemEditor(
-                    condition: FileCondition.fileNameContains,
-                    value: "",
-                    ruleValueType: RuleValueType.Text,
-                    onSaveClicked: (condition, value) {
-                      final rule = FileRule(condition: condition, value: value);
-                      addRule(rule);
-                    },
-                  ),
-                );
-              },
-            ),
+            builder: (context) => ExtensionSkipCaptureRuleEditorDialog(),
+            barrierDismissible: false,
             context: context,
           ),
-          tooltipMessage:
-              "Defines conditions which determine when a file should not be captures via browser extension",
+          tooltipMessage: loc.settings_rules_extensionSkipCaptureRules_tooltip,
         ),
       ],
     );

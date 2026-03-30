@@ -15,6 +15,7 @@ class TextFieldSetting extends StatelessWidget {
   final Function(String value)? onChanged;
   final TextEditingController txtController;
   bool obscureText;
+  final Widget? suffixIcon;
 
   TextFieldSetting({
     super.key,
@@ -27,12 +28,12 @@ class TextFieldSetting extends StatelessWidget {
     this.textWidth,
     required this.txtController,
     this.obscureText = false,
+    this.suffixIcon,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-        Provider.of<ThemeProvider>(context).activeTheme.settingTheme.pageTheme;
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
     textWidth ?? MediaQuery.of(context).size.width * 0.6 * 0.5;
     return Row(
       children: [
@@ -40,7 +41,11 @@ class TextFieldSetting extends StatelessWidget {
           width: textWidth,
           child: Text(
             text,
-            style: TextStyle(color: theme.titleTextColor),
+            style: TextStyle(
+              color: theme.settingTheme.pageTheme.titleTextColor,
+              fontWeight: theme.fontWeight,
+              fontSize: 14,
+            ),
           ),
         ),
         const Spacer(),
@@ -49,11 +54,13 @@ class TextFieldSetting extends StatelessWidget {
           width: width,
           height: 50,
           child: OutLinedTextField(
+            cursorColor: theme.widgetTheme.textFieldColor.cursorColor,
             inputFormatters: inputFormatters,
             obscureText: obscureText,
             controller: txtController,
             keyboardType: keyboardType,
             onChanged: onChanged,
+            suffixIcon: suffixIcon,
           ),
         ),
         SizedBox(width: icon != null ? 10 : 0),

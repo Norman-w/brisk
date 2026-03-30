@@ -1,4 +1,5 @@
 import 'package:brisk/db/hive_util.dart';
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/queue_provider.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/widget/base/closable_window.dart';
@@ -20,16 +21,22 @@ class _CreateQueueWindowState extends State<CreateQueueWindow> {
   TextEditingController txtController = TextEditingController();
 
   @override
+  void dispose() {
+    txtController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final theme =
-        Provider.of<ThemeProvider>(context).activeTheme.alertDialogTheme;
+    final loc = AppLocalizations.of(context)!;
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
     return AlertDialog(
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: theme.alertDialogTheme.backgroundColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
       title: Text(
-        "Create New Queue",
+        loc.createNewQueue,
         style: TextStyle(
             color: theme.textColor, fontWeight: FontWeight.bold, fontSize: 20),
       ),
@@ -40,7 +47,7 @@ class _CreateQueueWindowState extends State<CreateQueueWindow> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text("Queue Name"),
+            Text(loc.queueName),
             const SizedBox(height: 10),
             SizedBox(
               width: 400,
@@ -51,15 +58,13 @@ class _CreateQueueWindowState extends State<CreateQueueWindow> {
       ),
       actions: [
         RoundedOutlinedButton.fromButtonColor(
-          theme.cancelButtonColor,
-          text: "Cancel",
-          width: 80,
+          theme.alertDialogTheme.declineButtonColor,
+          text: loc.btn_cancel,
           onPressed: () => Navigator.of(context).pop(),
         ),
         RoundedOutlinedButton.fromButtonColor(
-          theme.addButtonColor,
-          text: "Create Queue",
-          width: 120,
+          theme.alertDialogTheme.acceptButtonColor,
+          text: loc.btn_createQueue,
           onPressed: () => onCreatePressed(context),
         ),
       ],
@@ -78,7 +83,7 @@ class _CreateQueueWindowState extends State<CreateQueueWindow> {
         builder: (context) => ErrorDialog(
           title: "Queue with this name already exists!",
           height: 50,
-          width: 400,
+          width: 450,
         ),
       );
     } else {

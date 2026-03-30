@@ -1,3 +1,4 @@
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/widget/base/rounded_outlined_button.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class AskDuplicationAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).activeTheme;
+    final loc = AppLocalizations.of(context)!;
     return AlertDialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
@@ -47,19 +49,20 @@ class AskDuplicationAction extends StatelessWidget {
           ),
           SizedBox(width: 10),
           Text(
-            "Duplicate Download",
+            loc.duplicateDownload_title,
             style: TextStyle(
-                color: theme.alertDialogTheme.textColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 20),
+              color: theme.textColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
           ),
         ],
       ),
       content: Container(
         width: 400,
         child: Text(
-          "This download already exists!\nPlease choose an action.",
-          style: const TextStyle(fontSize: 17),
+          loc.duplicateDownload_description,
+          style: TextStyle(fontSize: 17, color: theme.textColor),
         ),
       ),
       actions: [
@@ -67,21 +70,20 @@ class AskDuplicationAction extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             RoundedOutlinedButton.fromButtonColor(
-              theme.alertDialogTheme.cancelButtonColor,
-              text: "Skip",
-              width: 80,
+              theme.alertDialogTheme.declineButtonColor,
+              text: loc.btn_cancel,
               onPressed: () => Navigator.of(context).pop(),
             ),
             const SizedBox(width: 5),
             RoundedOutlinedButton.fromButtonColor(
-              theme.downloadInfoDialogTheme.addToListColor,
-              text: "Update URL",
+              theme.alertDialogTheme.secondaryMiscButtonColor,
+              text: loc.btn_updateUrl,
               onPressed: onUpdateUrlPressed,
             ),
             const SizedBox(width: 5),
             RoundedOutlinedButton.fromButtonColor(
-              theme.alertDialogTheme.addButtonColor,
-              text: "Add New",
+              theme.alertDialogTheme.acceptButtonColor,
+              text: loc.btn_addNew,
               onPressed: onCreateNewPressed,
             ),
           ],

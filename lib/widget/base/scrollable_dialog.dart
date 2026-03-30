@@ -25,7 +25,7 @@ class ScrollableDialog extends StatefulWidget {
     required this.scrollviewHeight,
     required this.backgroundColor,
     this.borderRadius = 10,
-    this.buttons,
+    this.buttons = const [],
     this.title,
     this.mainAxisAlignment = MainAxisAlignment.start,
     this.crossAxisAlignment = CrossAxisAlignment.start,
@@ -60,6 +60,10 @@ class _ScrollableDialogState extends State<ScrollableDialog> {
       titlePadding: EdgeInsets.all(0),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
+        side: BorderSide(
+          color: theme.contextMenuTheme.borderColor,
+          width: 0.5,
+        ),
       ),
       content: Container(
         width: widget.width,
@@ -107,7 +111,7 @@ class _ScrollableDialogState extends State<ScrollableDialog> {
                               child: Icon(
                                 Icons.arrow_downward_rounded,
                                 size: 22,
-                                color: Colors.white60,
+                                color: theme.widgetTheme.iconColor,
                               ),
                             ),
                           ),

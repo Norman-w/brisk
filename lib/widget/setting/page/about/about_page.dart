@@ -1,5 +1,7 @@
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/theme_provider.dart';
-import 'package:brisk/util/settings_cache.dart';
+import 'package:brisk/util/platform.dart';
+import 'package:brisk/setting/settings_cache.dart';
 import 'package:brisk/widget/setting/base/settings_group.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -21,18 +23,14 @@ class _AboutPageState extends State<AboutPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-        Provider
-            .of<ThemeProvider>(context)
-            .activeTheme
-            .settingTheme
-            .pageTheme;
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
+    final loc = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SettingsGroup(title: "Info", height: 100, children: [
+          SettingsGroup(title: loc.settings_info, children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -40,20 +38,21 @@ class _AboutPageState extends State<AboutPage> {
                 const SizedBox(width: 5),
                 Icon(
                   Icons.info_outline,
-                  color: theme.widgetColor.aboutIconColor,
+                  color: theme.widgetTheme.iconColor,
                   size: 30,
                 ),
                 const SizedBox(width: 30),
                 Text(
-                  "Version: ${SettingsCache.currentVersion}",
-                  style: TextStyle(color: theme.titleTextColor),
+                  "${loc.settings_version}: ${SettingsCache.currentVersion}$buildType",
+                  style: TextStyle(
+                      color: theme.settingTheme.pageTheme.titleTextColor),
                 ),
               ],
             )
           ]),
+          const SizedBox(height: 15),
           SettingsGroup(
-            height: 450,
-            title: "Developer",
+            title: loc.settings_developer,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -62,13 +61,14 @@ class _AboutPageState extends State<AboutPage> {
                   const SizedBox(width: 5),
                   Icon(
                     Icons.person,
-                    color: theme.widgetColor.aboutIconColor,
+                    color: theme.widgetTheme.iconColor,
                     size: 30,
                   ),
                   const SizedBox(width: 30),
                   Text(
                     "Amin Beheshti",
-                    style: TextStyle(color: theme.titleTextColor),
+                    style: TextStyle(
+                        color: theme.settingTheme.pageTheme.titleTextColor),
                   ),
                 ],
               ),
@@ -80,43 +80,17 @@ class _AboutPageState extends State<AboutPage> {
                   const SizedBox(width: 5),
                   Icon(
                     Icons.email,
-                    color: theme.widgetColor.aboutIconColor,
+                    color: theme.widgetTheme.iconColor,
                     size: 30,
                   ),
                   const SizedBox(width: 30),
                   Text(
                     "amin.bhst@gmail.com",
-                    style: TextStyle(color: theme.titleTextColor),
+                    style: TextStyle(
+                        color: theme.settingTheme.pageTheme.titleTextColor),
                   ),
                 ],
               ),
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.start,
-              //   crossAxisAlignment: CrossAxisAlignment.center,
-              //   children: [
-              //     const SizedBox(width: 3),
-              //     SvgPicture.asset(
-              //       "assets/icons/github.svg",
-              //       height: 35,
-              //       width: 35,
-              //       colorFilter: ColorFilter.mode(
-              //         theme.widgetColor.aboutIconColor,
-              //         BlendMode.srcIn,
-              //       ),
-              //     ),
-              //     const SizedBox(width: 30),
-              //     InkWell(
-              //         onTap: () =>
-              //             launchUrlString("https://github.com/AminBhst"),
-              //         child: Text(
-              //           "AminBhst",
-              //           style: TextStyle(
-              //             color: theme.titleTextColor,
-              //           ),
-              //         )),
-              //   ],
-              // ),
-              // const SizedBox(height: 30),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -125,21 +99,20 @@ class _AboutPageState extends State<AboutPage> {
                   const SizedBox(width: 3),
                   Icon(
                     Icons.attach_money_rounded,
-                    color: theme.widgetColor.aboutIconColor,
+                    color: theme.widgetTheme.iconColor,
                     size: 35,
                   ),
                   const SizedBox(width: 30),
                   InkWell(
                     onTap: () =>
-                        launchUrlString(
-                            "https://github.com/AminBhst/brisk?tab=readme-ov-file#money_with_wings-donations"),
+                        launchUrlString("https://buymeacoffee.com/aminbhst"),
                     onHover: (val) => setState(() => donationHover = val),
                     child: Text(
-                      "Donate",
+                      loc.settings_info_donate,
                       style: TextStyle(
                           color: donationHover
                               ? Colors.blue
-                              : theme.titleTextColor),
+                              : theme.settingTheme.pageTheme.titleTextColor),
                     ),
                   ),
                 ],
@@ -155,21 +128,22 @@ class _AboutPageState extends State<AboutPage> {
                     height: 35,
                     width: 35,
                     colorFilter: ColorFilter.mode(
-                      theme.widgetColor.aboutIconColor,
+                      theme.widgetTheme.iconColor,
                       BlendMode.srcIn,
                     ),
                   ),
                   const SizedBox(width: 30),
                   InkWell(
                     onTap: () =>
-                        launchUrlString("https://github.com/AminBhst/Brisk"),
+                        launchUrlString("https://github.com/BrisklyDev/Brisk"),
                     onHover: (val) => setState(() => githubHover = val),
                     child: Text(
-                      "AminBhst/Brisk",
+                      "BrisklyDev/Brisk",
                       style: TextStyle(
-                          color: githubHover
-                              ? Colors.blue
-                              : theme.titleTextColor),
+                        color: githubHover
+                            ? Colors.blue
+                            : theme.settingTheme.pageTheme.titleTextColor,
+                      ),
                     ),
                   ),
                 ],
@@ -185,7 +159,7 @@ class _AboutPageState extends State<AboutPage> {
                     height: 35,
                     width: 35,
                     colorFilter: ColorFilter.mode(
-                      theme.widgetColor.aboutIconColor,
+                      theme.widgetTheme.iconColor,
                       BlendMode.srcIn,
                     ),
                   ),
@@ -195,11 +169,11 @@ class _AboutPageState extends State<AboutPage> {
                         launchUrlString("https://discord.gg/hGBDWNDHG3"),
                     onHover: (val) => setState(() => discordHover = val),
                     child: Text(
-                      "Discord Server",
+                      loc.settings_info_discordServer,
                       style: TextStyle(
                           color: discordHover
                               ? Colors.blue
-                              : theme.titleTextColor),
+                              : theme.settingTheme.pageTheme.titleTextColor),
                     ),
                   ),
                 ],
@@ -215,7 +189,7 @@ class _AboutPageState extends State<AboutPage> {
                     height: 35,
                     width: 35,
                     colorFilter: ColorFilter.mode(
-                      theme.widgetColor.aboutIconColor,
+                      theme.widgetTheme.iconColor,
                       BlendMode.srcIn,
                     ),
                   ),
@@ -224,11 +198,11 @@ class _AboutPageState extends State<AboutPage> {
                     onTap: () => launchUrlString("https://t.me/ryedev"),
                     onHover: (val) => setState(() => telegramHover = val),
                     child: Text(
-                      "Telegram Channel",
+                      loc.settings_info_telegramChannel,
                       style: TextStyle(
                           color: telegramHover
                               ? Colors.blue
-                              : theme.titleTextColor),
+                              : theme.settingTheme.pageTheme.titleTextColor),
                     ),
                   ),
                 ],
@@ -238,5 +212,12 @@ class _AboutPageState extends State<AboutPage> {
         ],
       ),
     );
+  }
+
+  String get buildType {
+    if (isFlatpak) return "-flatpak";
+    if (isSnap) return "-snap";
+    if (isAur) return "-aur";
+    return "";
   }
 }

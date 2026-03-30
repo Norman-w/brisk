@@ -1,4 +1,5 @@
 import 'package:brisk/db/hive_util.dart';
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/model/download_queue.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/widget/base/closable_window.dart';
@@ -30,9 +31,9 @@ class _QueueDetailsWindowState extends State<QueueDetailsWindow> {
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-        Provider.of<ThemeProvider>(context).activeTheme.alertDialogTheme;
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
     final size = MediaQuery.of(context).size;
+    final loc = AppLocalizations.of(context)!;
     return AlertDialog(
       actionsPadding: EdgeInsets.all(0),
       contentPadding: EdgeInsets.all(0),
@@ -47,7 +48,7 @@ class _QueueDetailsWindowState extends State<QueueDetailsWindow> {
           Padding(
             padding: const EdgeInsets.all(25),
             child: Text(
-              "Edit Queue Items",
+              loc.editQueueItems,
               style: TextStyle(
                   color: theme.textColor,
                   fontWeight: FontWeight.bold,
@@ -61,7 +62,7 @@ class _QueueDetailsWindowState extends State<QueueDetailsWindow> {
           )
         ],
       ),
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: theme.alertDialogTheme.backgroundColor,
       content: SizedBox(
         width: resolveDialogWidth(size),
         height: resolveListHeight(size),
@@ -89,15 +90,15 @@ class _QueueDetailsWindowState extends State<QueueDetailsWindow> {
                                 height: 90,
                                 width: 90,
                                 colorFilter: ColorFilter.mode(
-                                  theme.placeHolderIconColor,
+                                  theme.widgetTheme.iconColor,
                                   BlendMode.srcIn,
                                 ),
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                "Queue Is Empty",
+                                loc.queueIsEmpty,
                                 style: TextStyle(
-                                  color: theme.placeHolderIconColor,
+                                  color: theme.widgetTheme.iconColor,
                                   fontSize: 18,
                                 ),
                               ),
@@ -108,6 +109,17 @@ class _QueueDetailsWindowState extends State<QueueDetailsWindow> {
                           width: resolveDialogWidth(size) - 20,
                           height: resolveListHeight(size),
                           child: ReorderableListView.builder(
+                            proxyDecorator: (child, index, animation) {
+                              return AnimatedBuilder(
+                                animation: animation,
+                                builder: (context, _) {
+                                  return Material(
+                                    color: Colors.transparent,
+                                    child: child,
+                                  );
+                                },
+                              );
+                            },
                             buildDefaultDragHandles: false,
                             itemBuilder: (context, index) {
                               final dl = HiveUtil.instance.downloadItemsBox.get(
@@ -121,7 +133,7 @@ class _QueueDetailsWindowState extends State<QueueDetailsWindow> {
                                   horizontal: 8,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: theme.itemContainerBackgroundColor,
+                                  color: theme.alertDialogTheme.surfaceColor,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: ListTile(
@@ -134,9 +146,9 @@ class _QueueDetailsWindowState extends State<QueueDetailsWindow> {
                                       children: [
                                         ReorderableDragStartListener(
                                           index: index,
-                                          child: const Icon(
+                                          child: Icon(
                                             Icons.drag_indicator_rounded,
-                                            color: Colors.white70,
+                                            color: theme.widgetTheme.iconColor,
                                           ),
                                         ),
                                         SizedBox(
@@ -159,16 +171,16 @@ class _QueueDetailsWindowState extends State<QueueDetailsWindow> {
                                   ),
                                   title: Text(
                                     dl.fileName,
-                                    style: const TextStyle(color: Colors.white),
+                                    style: TextStyle(color: theme.textColor),
                                   ),
                                   trailing: SizedBox(
                                     width: 40,
                                     child: Material(
                                       color: Colors.transparent,
                                       child: IconButton(
-                                        icon: const Icon(
+                                        icon: Icon(
                                           Icons.delete,
-                                          color: Colors.white54,
+                                          color: theme.widgetTheme.iconColor,
                                         ),
                                         splashRadius: 20,
                                         onPressed: () => onRemovePressed(index),
@@ -203,17 +215,15 @@ class _QueueDetailsWindowState extends State<QueueDetailsWindow> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 RoundedOutlinedButton.fromButtonColor(
-                  theme.cancelButtonColor,
+                  theme.alertDialogTheme.cancelColor,
                   onPressed: onCancelPressed,
-                  width: 95,
-                  text: "Cancel",
+                  text: loc.btn_cancel,
                 ),
                 const SizedBox(width: 10),
                 RoundedOutlinedButton.fromButtonColor(
-                  theme.addButtonColor,
+                  theme.settingTheme.saveButtonColor,
                   onPressed: onSavePressed,
-                  width: 120,
-                  text: "Save Changes",
+                  text: loc.btn_saveChanges,
                 )
               ],
             ),

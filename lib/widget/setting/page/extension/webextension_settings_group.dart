@@ -1,9 +1,11 @@
+import 'package:brisk/l10n/app_localizations.dart';
+import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/widget/setting/base/switch_setting.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../util/settings_cache.dart';
-import '../../base/settings_group.dart';
-import '../../base/text_field_setting.dart';
+import 'package:brisk/setting/settings_cache.dart';
+import 'package:brisk/widget/setting/base/settings_group.dart';
+import 'package:brisk/widget/setting/base/text_field_setting.dart';
+import 'package:provider/provider.dart';
 
 class PortSettingsGroup extends StatefulWidget {
   const PortSettingsGroup({super.key});
@@ -13,12 +15,23 @@ class PortSettingsGroup extends StatefulWidget {
 }
 
 class _WebExtensionSettingsGroupState extends State<PortSettingsGroup> {
+  final portController = TextEditingController(
+    text: SettingsCache.extensionPort.toString(),
+  );
+
+  @override
+  void dispose() {
+    portController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final size = MediaQuery.of(context).size;
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
     return SettingsGroup(
-      height: 175,
-      title: "Browser Extension",
+      title: loc.settings_browserExtension,
       children: [
         TextFieldSetting(
           onChanged: (value) => _onChanged(
@@ -27,16 +40,21 @@ class _WebExtensionSettingsGroupState extends State<PortSettingsGroup> {
           ),
           width: 75,
           textWidth: size.width * 0.6 * 0.32,
-          text: "Port",
-          txtController: TextEditingController(
-              text: SettingsCache.extensionPort.toString()),
+          text: loc.port,
+          txtController: portController,
         ),
         SwitchSetting(
-          text: "Bring window to front on new download request",
+          text: loc.settings_downloadBrowserExtension_bringWindowToFront,
           switchValue: SettingsCache.enableWindowToFront,
           onChanged: (val) =>
               setState(() => SettingsCache.enableWindowToFront = val),
         ),
+        Center(
+          child: Text(
+            '* ${loc.changesRequireRestart}',
+            style: TextStyle(color: theme.subtleTextColor, fontSize: 14),
+          ),
+        )
       ],
     );
   }

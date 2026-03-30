@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.BrisklyDev.Brisk</id>
+  <name>Brisk</name>
+  <summary>Ultra-fast, modern download manager</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#2d65b7</color>
+    <color type="primary" scheme_preference="dark">#171717</color>
+  </branding>
+
+  <description>
+    <p>
+      Brisk is a high-speed desktop download manager designed for efficiency and integration with the browser
+    </p>
+    <p>
+      Features:
+    </p>
+    <ul>
+      <li>Powerful, Custom-Built Download Engine</li>
+      <li>Multiple themes including catppuccin and tokyo night</li>
+      <li>Browser Integration</li>
+      <li>Downloading video streams from the browser</li>
+      <li>Soft-subbing video files downloaded from streaming websites</li>
+      <li>Download Queues and Scheduling</li>
+      <li>Customizable Hotkey for adding a URL from clipboard</li>
+    </ul>
+  </description>
+
+  <url type="homepage">https://github.com/BrisklyDev/brisk</url>
+  <url type="bugtracker">https://github.com/BrisklyDev/brisk/issues</url>
+
+  <screenshots>
+    <screenshot type="default" xml:lang="en">
+      <caption>Main Screen</caption>
+      <image>https://raw.githubusercontent.com/BrisklyDev/brisk/refs/heads/main/images/mainscreen.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Downloading Screen</caption>
+      <image>https://raw.githubusercontent.com/BrisklyDev/brisk/refs/heads/main/images/downloading-screen.png</image>
+    </screenshot>
+  </screenshots>
+
+  <releases>
+    <release version="2.3.8" date="2025-11-21">
+    <description>
+      <p><em>🔧 Bug Fixes and Improvements</em></p>
+      <ul>
+        <li>Fixed pick new location button not working on linux</li>
+        <li>Fixed a UI bug in Celestial Dark theme leading to an invisible pause button icon</li>
+        <li>Other minor bug fixes</li>
+      </ul>
+    </description>
+    </release>
+  </releases>
+
+  <content_rating type="oars-1.1" />
+
+  <developer id="io.github.aminbhst">
+    <name>Amin Beheshti</name>
+  </developer>
+
+  <categories>
+    <category>Network</category>
+    <category>FileTransfer</category>
+    <category>Utility</category>
+  </categories>
+
+  <launchable type="desktop-id">io.github.BrisklyDev.Brisk.desktop</launchable>
+</component>

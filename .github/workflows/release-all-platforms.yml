@@ -3,18 +3,7 @@ name: Release All Platforms
 on:
 
   workflow_dispatch:
-  # inputs:
-
-  #   tag:
-  #     description: 'Enter a tag for this release'
-  #     required: true
-  #     type: string
-
-  # Release_note:
-  #   description: 'Enter your release notes'
-  #   required: true
-  #   type: string
-
+  
 jobs:
   version:
     runs-on: windows-latest
@@ -31,7 +20,7 @@ jobs:
           $VERSION = Select-String  -Path ".\pubspec.yaml" -Pattern "^\s*version:\s*(\d+\.\d+\.\d+)" -CaseSensitive | ForEach-Object{ $_.Matches.Groups[1].Value }
           echo version=$VERSION >> $env:GITHUB_OUTPUT
 
-  Build-windows:
+  Build-Windows:
     runs-on: windows-latest
     permissions:
       contents: read
@@ -62,7 +51,7 @@ jobs:
       - name: Install flutter
         uses: subosito/flutter-action@v2.14.0
         with:
-          flutter-version: "3.29.2"
+          flutter-version: "3.32.0"
           channel: 'stable'
           cache: true
           cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
@@ -148,7 +137,7 @@ jobs:
       - name: Install flutter
         uses: subosito/flutter-action@v2.14.0
         with:
-          flutter-version: "3.29.2"
+          flutter-version: "3.32.0"
           channel: 'stable'
           cache: true
           cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:' 
@@ -176,7 +165,10 @@ jobs:
         run: |
            mkdir ${{ github.workspace }}/build/linux/x64/release/bundle/updater
            cp -R ${{ github.workspace }}/brisk_auto_updater/build/linux/x64/release/bundle/* ${{ github.workspace }}/build/linux/x64/release/bundle/updater
-         
+
+      - name: Copy desktop entry file
+        run: cp linux/brisk.desktop build/linux/x64/release/bundle/
+        
       - name: Compress the release file
         run: tar -cJf Brisk-v${{ needs.version.outputs.version }}-linux-x86_64.tar.xz -C build/linux/x64/release/bundle/ .
           
@@ -187,80 +179,118 @@ jobs:
           path: ./Brisk-v${{ needs.version.outputs.version }}-linux-x86_64.*
           retention-days: 1
 
-  #  Build-macos:
-#    runs-on: macos-latest
-#    permissions:
-#      contents: read
-#    needs: version
-#    steps:
-#
-#      - name: Checkout the code
-#        uses: actions/checkout@v4.1.5
-#
-#      - name: Set up Node.js
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: '20'
-#
-#      - name: Install npm dependencies
-#        run: npm install -g appdmg
-#
-#      - name: Install flutter
-#        uses: subosito/flutter-action@v2.14.0
-#        with:
-#          flutter-version: "3.22.0"
-#          channel: 'stable'
-#          cache: true
-#          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
-#          cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
-#
-#      - name: Enable linux-desktop for flutter
-#        run: flutter config --enable-macos-desktop && export PATH="$PATH":"$HOME/.pub-cache/bin"
-#
-#      - name: Copy MacOS related files
-#        run: |
-#          cp macos/Runner/Release.entitlements .
-#          cp -r macos/Runner/Assets.xcassets .
-#          cp -r macos/packaging .
-#
-#      - name: Recreate MacOS directory
-#        run: |
-#          rm -rf macos
-#          flutter create --platform macos .
-#
-#      - name: Replace MacOS files
-#        run: |
-#          mv packaging macos/
-#          cp -f Release.entitlements macos/Runner/
-#          cp -rf Assets.xcassets macos/Runner/
-#
-#      - name: Get dependencies
-#        run: flutter pub get
-#
-#      - name: Install flutter_distributor
-#        run: dart pub global activate flutter_distributor
-#
-#      - name: Start the build process
-#        run: flutter_distributor package --platform macos --targets dmg
-#
-#      - name: Debug
-#        run: ls dist/${{ needs.version.outputs.version }}
-#
-#      - name: Rename dmg File
-#        run: mv dist/${{ needs.version.outputs.version }}/brisk-${{ needs.version.outputs.version }}+${{ needs.version.outputs.version }}-macos.dmg ./Brisk-${{ needs.version.outputs.version }}-macos-x64.dmg
-#
-#      - name: Upload artifact
-#        uses: actions/upload-artifact@v4.3.3
-#        with:
-#          name: brisk-dmg
-#          path: Brisk-${{ needs.version.outputs.version }}-macos-x64.dmg
-#          retention-days: 1
+  Build-macOS:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    needs: version
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4.1.5
+
+      - name: Set up node js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install npm dependencies
+        run: npm install -g appdmg
+
+      - name: Install flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.0"
+          channel: 'stable'
+          cache: true
+          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
+          cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
+
+      - name: Print Environment Info
+        run: |
+          echo "--- Flutter Version --- "
+          flutter --version --verbose
+          echo "--- Dart Version --- "
+          dart --version
+          echo "--- macOS Version --- "
+          sw_vers
+          echo "--- Xcode Version --- "
+          xcodebuild -version
+          echo "--- Xcode SDKs --- "
+          xcodebuild -showsdks
+          echo "--- CocoaPods Version --- "
+          pod --version
+          echo "--- Node Version --- "
+          node --version
+          echo "--- npm Version --- "
+          npm --version
+          echo "--- appdmg Version --- "
+          appdmg --version || echo "appdmg not found or version command failed"
+          echo "--- Ruby Version --- "
+          ruby --version
+          echo "--- RubyGems Version --- "
+          gem --version
+          echo "--- System Info --- "
+          uname -a
+          echo "--- pubspec.lock loader_overlay --- "
+          grep loader_overlay pubspec.lock | cat
+          echo "--- Flutter Pub Deps --- "
+          flutter pub deps
+
+      - name: Enable macos desktop for flutter
+        run: flutter config --enable-macos-desktop && export PATH="$PATH":"$HOME/.pub-cache/bin"
+
+      - name: Ensure macos directory exists
+        run: flutter create --platform macos .
+
+      - name: Remove RunnerTests target from Podfile using Dart script
+        run: |
+          echo "Running Dart script to remove RunnerTests target..."
+          dart run scripts/fix_podfile_for_build_macos.dart macos/Podfile
+          echo "--- Podfile after Dart script modification --- "
+          cat macos/Podfile
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Install flutter distributor
+        run: dart pub global activate flutter_distributor
+
+      - name: Start the build process
+        run: flutter_distributor package --platform macos --targets dmg
+
+      - name: Rename dmg file
+        run: mv dist/${{ needs.version.outputs.version }}/brisk-${{ needs.version.outputs.version }}-macos.dmg ./Brisk-v${{ needs.version.outputs.version }}-macos.dmg
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: brisk-dmg
+          path: Brisk-v${{ needs.version.outputs.version }}-macos.dmg
+          retention-days: 1
+
+  Build-Snap:
+    needs: [ version ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Update snapcraft.yaml version
+        run: |
+          cd snap
+          echo "Setting version to ${{ needs.version.outputs.version }}"
+          sed -i "s/^version: .*/version: ${{ needs.version.outputs.version }}/" snapcraft.yaml
+      - uses: snapcore/action-build@v1.3.0
+        id: build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: brisk-snap
+          path: ./brisk_${{ needs.version.outputs.version }}_amd64.snap
+          retention-days: 1
 
 
-  Release:
+  Release-Binaries:
     runs-on: ubuntu-22.04
-#    needs: [Build-Linux, Build-windows, Build-macos, version]
-    needs: [Build-Linux, Build-windows, version]
+    needs: [Build-Linux, Build-Windows, Build-macOS, Build-Snap, version]
     permissions:
       contents: write
     steps:
@@ -273,17 +303,22 @@ jobs:
         with:
           name: brisk-package
 
-      - name: Download artifact package
+      - name: Download windows exe package
         uses: actions/download-artifact@v4.1.0
         with:
           name: brisk-windows-exe
 
-      - name: Download artifact package
+      - name: Download windows zip package
         uses: actions/download-artifact@v4.1.0
         with:
           name: brisk-windows-zip
 
-      - name: Release the changes
+      - name: Download macos package
+        uses: actions/download-artifact@v4.1.0
+        with:
+          name: brisk-dmg
+
+      - name: Release Binaries
         uses: softprops/action-gh-release@v2.0.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -294,3 +329,227 @@ jobs:
             ./Brisk-v${{ needs.version.outputs.version }}-linux-x86_64.tar.xz
             ./Brisk-v${{ needs.version.outputs.version }}-windows-x86_64.zip
             ./Brisk-v${{ needs.version.outputs.version }}-windows-x86_64.exe
+            ./Brisk-v${{ needs.version.outputs.version }}-macos.dmg
+
+  Release-Snap:
+    runs-on: ubuntu-22.04
+    needs: [Build-Linux, Build-Windows, Build-macOS, Build-Snap, version]
+    permissions:
+      contents: write
+    steps:
+
+      - name: Checkout the code
+        uses: actions/checkout@v4.1.5
+
+      - name: Download snap package
+        uses: actions/download-artifact@v4.1.0
+        with:
+          name: brisk-snap
+
+      - name: Install Snapcraft
+        run: sudo snap install snapcraft --classic
+
+      - name: Upload to Snap Store
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_CREDENTIALS }}
+        run: snapcraft upload brisk_${{ needs.version.outputs.version }}_amd64.snap --release=stable
+
+
+  Release-AUR:
+    needs: [Build-Linux, Build-Windows, Build-macOS, Build-Snap, version]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main repo
+        uses: actions/checkout@v3
+
+      - name: Install flutter
+        uses: subosito/flutter-action@v2.14.0
+        with:
+          flutter-version: "3.32.0"
+          channel: 'stable'
+          cache: true
+          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
+          cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
+          architecture: x64
+
+      - name: Install required tools
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y keybinder-3.0 clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev rpm patchelf libayatana-appindicator3-dev
+
+      - name: Enable linux-desktop for flutter
+        run: flutter config --enable-linux-desktop && export PATH="$PATH":"$HOME/.pub-cache/bin"
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Start the build process
+        run: flutter build linux --release --dart-define=BUILD_METHOD=aur
+
+      - name: Copy desktop entry file
+        run: cp linux/brisk.desktop build/linux/x64/release/bundle/
+
+      - name: Compress the release file
+        run: tar -cJf Brisk-v${{ needs.version.outputs.version }}-linux-aur-x86_64.tar.xz -C build/linux/x64/release/bundle/ .
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Clone GitHub Pages repo
+        env:
+          PAGES_REPO_PAT: ${{ secrets.REPO_PAT }}
+        run: |
+          git clone https://x-access-token:${PAGES_REPO_PAT}@github.com/BrisklyDev/brisklydev.github.io.git
+          cd brisklydev.github.io
+          mkdir -p brisk/releases/aur
+
+      - name: Copy artifact to pages repo
+        run: |
+          cp Brisk-v${{ needs.version.outputs.version }}-linux-aur-x86_64.tar.xz brisklydev.github.io/brisk/releases/aur
+
+      - name: Commit and push
+        run: |
+          cd brisklydev.github.io
+          git add .
+          git commit -m "Add AUR build for version ${{ needs.version.outputs.version }}"
+          git push origin main
+
+      - name: Wait for file to go live
+        run: sleep 60
+
+      - name: Setup SSH key for AUR
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_DEPLOY_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+
+      - name: Clone AUR repo via SSH
+        run: |
+          git clone ssh://aur@aur.archlinux.org/brisk.git aur-repo
+          cd aur-repo
+
+      - name: Update PKGBUILD version
+        run: |
+          cd aur-repo
+          sed -i "s/^pkgver=.*/pkgver=${{ needs.version.outputs.version }}/" PKGBUILD
+
+      - name: Update .SRCINFO
+        run: |
+          cd aur-repo
+          sed -i 's/^[[:space:]]*pkgver =.*/\tpkgver = ${{ needs.version.outputs.version }}/' .SRCINFO
+          sed -i 's/^[[:space:]]*source =.*/\tsource = https:\/\/brisklydev.github.io\/brisk\/releases\/aur\/Brisk-v${{ needs.version.outputs.version }}-linux-aur-x86_64.tar.xz/' .SRCINFO
+
+      - name: Commit and push changes
+        run: |
+          cd aur-repo
+          git config user.name "GitHub Action Bot"
+          git config user.email "actions@github.com"
+          git add PKGBUILD .SRCINFO
+          git commit -m "Update pkgver to ${{ needs.version.outputs.version }}"
+          git push origin master
+
+
+  Release-flatpak:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: [Release-Binaries]
+    steps:
+
+      - name: Wait
+        run: sleep 10
+
+      - name: Checkout the code
+        uses: actions/checkout@v4.1.5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Force fetch tags from origin
+        run: git fetch origin "+refs/tags/*:refs/tags/*"
+
+      - name: Get commit of tag
+        id: get_commit
+        run: |
+          TAG_NAME="v${{ needs.version.outputs.version }}"
+          COMMIT_HASH=$(git rev-list -n 1 "$TAG_NAME")
+          echo "Commit for $TAG_NAME is $COMMIT_HASH"
+          echo "commit_hash=$COMMIT_HASH" >> "$GITHUB_OUTPUT"
+
+      - name: Clone flatpak-flutter
+        run: |
+          git clone https://github.com/TheAppgineer/flatpak-flutter.git
+          cd flatpak-flutter
+          git checkout de96937f47903685fcb54b17ce55c609c8496f12
+          mkdir brisk
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.3'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Update flatpak-flutter.yml
+        run: |
+          pip install pyyaml
+          ./linux/packaging/flatpak/update-flatpak-flutter.py linux/packaging/flatpak/flatpak-flutter.yml --tag v${{ needs.version.outputs.version }} --commit ${{ steps.get_commit.outputs.commit_hash }}
+          cat linux/packaging/flatpak/flatpak-flutter.yml
+
+      - name: Install dependencies
+        run: pip install aiohttp pyyaml toml
+
+      - name: Install flatpak
+        run: |
+          sudo apt update
+          sudo apt install -y flatpak
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak remote-ls flathub > /dev/null
+          flatpak install -y --user flathub org.flatpak.Builder
+
+      - name: Run flatpak-flutter
+        run: |
+          cp linux/packaging/flatpak/flatpak-flutter.yml flatpak-flutter/brisk/
+          cd flatpak-flutter/brisk/
+          ../flatpak-flutter.py flatpak-flutter.yml
+          ls -la
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Push update to flathub release branch
+        env:
+          PAGES_REPO_PAT: ${{ secrets.REPO_PAT }}
+        run: |
+          git clone https://x-access-token:${PAGES_REPO_PAT}@github.com/flathub/io.github.BrisklyDev.Brisk.git
+          cd io.github.BrisklyDev.Brisk
+          pwd
+          git checkout -B release-${{ needs.version.outputs.version }}
+          find . -maxdepth 1 -type f ! -name '.gitmodules' -exec rm -rf {} +
+          ls -ltrh ../flatpak-flutter/brisk/*
+          cat ../flatpak-flutter/brisk/flatpak-flutter.yml
+          find ../flatpak-flutter/brisk -maxdepth 1 -type f -exec cp {} . \;
+          ls -la
+          git add .
+          git commit -m "Release"
+          git push origin release-${{ needs.version.outputs.version }}
+
+
+      - name: Install GitHub CLI
+        run: sudo apt install -y gh
+
+      - name: Create Pull Request with gh CLI
+        env:
+          GH_TOKEN: ${{ secrets.REPO_PAT }}
+        run: |
+          gh pr create --repo flathub/io.github.BrisklyDev.Brisk \
+            --title "Release v${{ needs.version.outputs.version }}" \
+            --body "Automated release PR for version v${{ needs.version.outputs.version }}" \
+            --head "release-${{ needs.version.outputs.version }}" \
+            --base master

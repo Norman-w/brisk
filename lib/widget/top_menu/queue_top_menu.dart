@@ -1,5 +1,6 @@
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/theme_provider.dart';
-import 'package:brisk/util/responsive_util.dart';
+import 'package:brisk/util/ui_util.dart';
 import 'package:brisk/widget/queue/create_queue_window.dart';
 import 'package:brisk/widget/top_menu/top_menu_button.dart';
 import 'package:flutter/material.dart';
@@ -15,10 +16,11 @@ class QueueTopMenu extends StatelessWidget {
     provider = Provider.of<DownloadRequestProvider>(context, listen: false);
     final topMenuTheme =
         Provider.of<ThemeProvider>(context).activeTheme.topMenuTheme;
+    final loc = AppLocalizations.of(context)!;
     final size = MediaQuery.of(context).size;
     return Container(
       width: resolveWindowWidth(size),
-      height: 70,
+      height: topMenuHeight,
       color: topMenuTheme.backgroundColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -28,13 +30,15 @@ class QueueTopMenu extends StatelessWidget {
             padding: const EdgeInsets.only(left: 20),
             child: TopMenuButton(
               onTap: () => onCreateQueuePressed(context),
-              title: 'Create Queue',
-              fontSize: 11.5,
+              title: loc.btn_createQueue,
+              fontSize: 14,
               icon: Icon(
+                size: 28,
                 Icons.add_rounded,
                 color: topMenuTheme.createQueueColor.iconColor,
               ),
               onHoverColor: topMenuTheme.createQueueColor.hoverBackgroundColor,
+              isEnabled: true,
             ),
           ),
         ],

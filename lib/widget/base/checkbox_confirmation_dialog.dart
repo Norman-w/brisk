@@ -1,5 +1,7 @@
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/widget/base/rounded_outlined_button.dart';
+import 'package:brisk/widget/base/scrollable_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -26,47 +28,48 @@ class _CheckedBoxedConfirmationDialogState
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-        Provider.of<ThemeProvider>(context).activeTheme.alertDialogTheme;
-    return AlertDialog(
-      surfaceTintColor: theme.backgroundColor,
-      backgroundColor: theme.backgroundColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      title: Row(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: const BoxDecoration(
-              color: Color.fromRGBO(245, 158, 11, 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Align(
-                alignment: const Alignment(0, -0.16),
-                child: const Icon(
-                  Icons.warning_rounded,
-                  color: Color.fromRGBO(245, 158, 11, 1),
-                  size: 35,
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
+    return ScrollableDialog(
+      scrollviewHeight: 110,
+      scrollButtonVisible: false,
+      width: 450,
+      height: 130,
+      backgroundColor: theme.alertDialogTheme.backgroundColor,
+      title: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: const BoxDecoration(
+                color: Color.fromRGBO(245, 158, 11, 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Align(
+                  alignment: const Alignment(0, -0.16),
+                  child: const Icon(
+                    Icons.warning_rounded,
+                    color: Color.fromRGBO(245, 158, 11, 1),
+                    size: 35,
+                  ),
                 ),
               ),
             ),
-          ),
-          SizedBox(width: 10),
-          Text(
-            "Confirm Action",
-            style: TextStyle(
-                color: theme.textColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 20),
-          ),
-        ],
+            SizedBox(width: 10),
+            Text(
+              AppLocalizations.of(context)!.confirmAction,
+              style: TextStyle(
+                  color: theme.textColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20),
+            ),
+          ],
+        ),
       ),
-      content: Container(
-        width: 450,
-        height: 90,
+      content: Padding(
+        padding: const EdgeInsets.only(left: 20, right: 20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +78,7 @@ class _CheckedBoxedConfirmationDialogState
               padding: EdgeInsets.only(top: 10),
               child: Text(
                 widget.title,
-                style: const TextStyle(fontSize: 17),
+                style: TextStyle(fontSize: 17, color: theme.textColor),
               ),
             ),
             const SizedBox(height: 20),
@@ -88,35 +91,34 @@ class _CheckedBoxedConfirmationDialogState
                   side: WidgetStateBorderSide.resolveWith(
                     (states) => BorderSide(
                       width: 1.0,
-                      color: theme.checkBoxColor.borderColor,
+                      color: theme.alertDialogTheme.checkBoxColor.borderColor,
                     ),
                   ),
-                  activeColor: theme.checkBoxColor.activeColor,
+                  activeColor: theme.alertDialogTheme.checkBoxColor.activeColor,
                   value: checkBoxValue,
                   onChanged: (value) => setState(() => checkBoxValue = value),
                 ),
                 Text(
                   widget.checkBoxTitle,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  style: TextStyle(color: theme.textColor, fontSize: 15),
                 ),
               ],
             )
           ],
         ),
       ),
-      actions: [
+      buttons: [
         RoundedOutlinedButton.fromButtonColor(
-          theme.deleteCancelColor,
-          text: "Cancel",
-          width: 80,
+          theme.alertDialogTheme.deleteCancelColor,
+          text: AppLocalizations.of(context)!.btn_cancel,
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
+        const SizedBox(width: 5),
         RoundedOutlinedButton.fromButtonColor(
-          theme.deleteConfirmColor,
-          text: "Yes, Delete",
-          width: 101,
+          theme.alertDialogTheme.deleteConfirmColor,
+          text: AppLocalizations.of(context)!.btn_deleteConfirm,
           onPressed: () {
             Navigator.of(context).pop();
             widget.onConfirmPressed(checkBoxValue!);

@@ -1,1 +1,5 @@
-- Fixed downloading video streams issue (requires Brisk v2.2.0)
+- Add download video button injection for supported video stream iframes
+- Added enable capture option in settings
+- Added Wait for Brisk's response before cancelling browser download option to settings
+- Added support for sending download cookies to Brisk (only used locally for downloading the files that require cookies)
+- Added "Download with Brisk" option to right click on links

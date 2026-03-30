@@ -1,5 +1,4 @@
-import 'package:brisk/download_engine/download_command.dart';
-import 'package:brisk/download_engine/download_status.dart';
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/download_request_provider.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/theme/application_theme.dart';
@@ -7,9 +6,9 @@ import 'package:brisk/util/readability_util.dart';
 import 'package:brisk/widget/base/rounded_outlined_button.dart';
 import 'package:brisk/widget/base/scrollable_dialog.dart';
 import 'package:brisk/widget/download/queue_schedule_handler.dart';
+import 'package:brisk_download_engine/brisk_download_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:brisk/download_engine/message/download_progress_message.dart';
 
 class DownloadProgressDialog extends StatefulWidget {
   final int downloadId;
@@ -26,6 +25,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
   late Size size;
   late ApplicationTheme theme;
   late DownloadRequestProvider provider;
+  late AppLocalizations loc;
 
   @override
   Widget build(BuildContext context) {
@@ -33,13 +33,14 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
     theme = Provider.of<ThemeProvider>(context).activeTheme;
     size = MediaQuery.of(context).size;
     final downloadProgress = provider.downloads[widget.downloadId]!;
+    loc = AppLocalizations.of(context)!;
     return ScrollableDialog(
-      width: 500,
+      width: 550,
       height: showDetails
           ? resolveDialogHeight(size) + 200
           : resolveDialogHeight(size),
       scrollButtonVisible: size.height < (showDetails ? 550 : 365),
-      scrollViewWidth: 500,
+      scrollViewWidth: 550,
       scrollviewHeight: 300,
       title: Padding(
         padding: const EdgeInsets.all(15),
@@ -57,7 +58,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
                 child: Icon(
                   Icons.close,
                   size: 22,
-                  color: Colors.white60,
+                  color: theme.widgetTheme.iconColor,
                 ),
               ),
             )
@@ -72,21 +73,21 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "File: ${downloadProgress.downloadItem.fileName}",
+              "${loc.file}: ${downloadProgress.downloadItem.fileName}",
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.white70),
+              style: TextStyle(color: theme.textColor),
             ),
             Text(
-              "URL: ${downloadProgress.downloadItem.downloadUrl}",
+              "${loc.url}: ${downloadProgress.downloadItem.downloadUrl}",
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.white70),
+              style: TextStyle(color: theme.textColor),
             ),
             const SizedBox(height: 15),
             Row(
               children: [
                 progressPercentage(),
                 const Spacer(),
-                completedSize(downloadProgress.downloadItem.contentLength)
+                completedSize(downloadProgress.downloadItem.fileSize)
               ],
             ),
             const SizedBox(height: 5),
@@ -102,24 +103,29 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
               ],
             ),
             const SizedBox(height: 10),
-            RoundedOutlinedButton(
-              onPressed: () {
-                setState(() {
-                  showDetails = !showDetails;
-                });
-              },
-              width: 220,
-              backgroundColor: Colors.black12,
-              borderColor: Colors.transparent,
-              textColor: Colors.blue,
-              text: showDetails
-                  ? "Hide Connection Details"
-                  : "Show Connection Details",
-              icon: Icon(
-                showDetails
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: RoundedOutlinedButton(
+                onPressed: () {
+                  setState(() {
+                    showDetails = !showDetails;
+                  });
+                },
+                backgroundColor: theme.widgetTheme.showHideButtonColor.backgroundColor,
+                borderColor: Colors.transparent,
+                hoverBackgroundColor:
+                    theme.widgetTheme.showHideButtonColor.hoverBackgroundColor,
+                hoverTextColor:
+                    theme.widgetTheme.showHideButtonColor.hoverTextColor,
+                textColor: theme.widgetTheme.showHideButtonColor.textColor,
+                text: showDetails
+                    ? loc.btn_hideConnectionDetails
+                    : loc.btn_showConnectionDetails,
+                icon: showDetails
                     ? Icons.expand_less_rounded
                     : Icons.expand_more_rounded,
-                color: Colors.blue,
+                iconColor: theme.widgetTheme.showHideButtonColor.iconColor,
+                iconHoverColor: theme.widgetTheme.showHideButtonColor.iconColor,
               ),
             ),
             const SizedBox(height: 15),
@@ -135,10 +141,10 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
     return Visibility(
       visible: showDetails,
       child: Container(
-        width: 500,
+        width: 550,
         height: 200,
         decoration: BoxDecoration(
-          color: theme.alertDialogTheme.itemContainerBackgroundColor,
+          color: theme.alertDialogTheme.surfaceColor,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Selector<DownloadRequestProvider, List<DownloadProgressMessage>>(
@@ -163,16 +169,16 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
-                              "Connection ${(index + 1).toString()}",
-                              style: const TextStyle(
-                                color: Color.fromRGBO(203, 203, 203, 1.0),
+                              "${loc.connection} ${(index + 1).toString()}",
+                              style: TextStyle(
+                                color: theme.textColor,
                                 fontSize: 15,
                               ),
                             ),
                             Text(
                               transferRate,
-                              style: const TextStyle(
-                                color: Color.fromRGBO(203, 203, 203, 1.0),
+                              style: TextStyle(
+                                color: theme.textColor,
                                 fontSize: 15,
                               ),
                             ),
@@ -188,7 +194,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
                       builder: (context, progress, child) {
                         return SizedBox(
                           height: 10,
-                          width: 450,
+                          width: 550,
                           child: LinearProgressIndicator(
                             backgroundColor: theme.downloadProgressDialogTheme
                                 .connectionProgressColor.backgroundColor,
@@ -221,54 +227,44 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
         }
         if (buttonEnabled.pauseButtonEnabled) {
           return RoundedOutlinedButton.fromButtonColor(
-            width: 115,
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            contentPadding: EdgeInsetsDirectional.only(end: 6),
             theme.downloadProgressDialogTheme.pauseColor,
             onPressed: onPausePressed,
-            icon: Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: SizedBox(
-                width: 20,
-                child: Icon(
-                  Icons.pause_rounded,
-                  color: Colors.white60,
-                ),
+            customIcon: SizedBox(
+              width: 20,
+              child: Icon(
+                Icons.pause_rounded,
+                color: theme.downloadProgressDialogTheme.pauseColor.iconColor,
               ),
             ),
-            text: "Pause",
+            text: loc.btn_pause,
           );
         } else if (buttonEnabled.startButtonEnabled) {
           return RoundedOutlinedButton.fromButtonColor(
-            width: 115,
             mainAxisAlignment: MainAxisAlignment.start,
+            contentPadding: EdgeInsetsDirectional.only(end: 6),
             theme.downloadProgressDialogTheme.resumeColor,
-            onPressed: () => provider.executeDownloadCommand(
-              widget.downloadId,
-              DownloadCommand.start,
-            ),
-            icon: SizedBox(
+            onPressed: () => provider.startDownload(widget.downloadId),
+            customIcon: SizedBox(
               width: 20,
               child: Icon(
                 Icons.play_arrow_rounded,
                 color: theme.downloadProgressDialogTheme.resumeColor.textColor,
               ),
             ),
-            text: "Resume",
+            text: loc.btn_resume,
           );
         } else {
           return RoundedOutlinedButton(
-            width: 120,
             borderColor: Colors.transparent,
             backgroundColor: Colors.black12,
+            contentPadding: EdgeInsetsDirectional.only(end: 6),
             onPressed: null,
-            icon: Padding(
-              padding: const EdgeInsets.all(0),
-              child: Icon(
-                Icons.hourglass_bottom_rounded,
-                color: Colors.white70,
-              ),
-            ),
-            text: "Wait",
+            icon: Icons.hourglass_bottom_rounded,
+            iconColor: Colors.white70,
+            iconHoverColor: Colors.white70,
+            text: loc.btn_wait,
             textColor: Colors.white70,
           );
         }
@@ -276,8 +272,8 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
     );
   }
 
-  void onPausePressed() {
-    provider.executeDownloadCommand(widget.downloadId, DownloadCommand.pause);
+  void onPausePressed() async {
+    await provider.pauseDownload(widget.downloadId);
     if (QueueScheduleHandler.runningDownloads.values
         .expand((l) => l)
         .contains(widget.downloadId)) {
@@ -299,26 +295,27 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
           provider.downloads[widget.downloadId]!.downloadItem.status,
       builder: (context, status, child) {
         if (status == DownloadStatus.validatingFiles) {
-          status = "Validating Files";
+          status = loc.status_validatingFiles;
         } else if (status == DownloadStatus.downloading) {
-          status = "Downloading File";
+          status = loc.status_downloadingFile;
         } else if (status == DownloadStatus.paused) {
-          status = "Paused";
+          status = loc.status_paused;
         } else if (status == DownloadStatus.assembleComplete) {
-          status = "Download Complete";
+          status = loc.status_complete;
         } else if (status == DownloadStatus.assembleFailed) {
-          status = "Critical Download Failure";
+          status = loc.status_downloadFailed;
         } else if (status == DownloadStatus.connecting) {
-          status = "Connecting";
+          status = loc.status_connecting;
         } else if (status == DownloadStatus.assembling) {
-          status = "Assembling File";
+          status = loc.status_assemblingFile;
         } else if (status == DownloadStatus.failed) {
-          status = "Download Failed";
+          status = loc.status_downloadFailed;
         }
         return Text(
           status,
           style: TextStyle(
             fontWeight: FontWeight.bold,
+            color: theme.textColor,
             fontSize: 18,
           ),
         );
@@ -341,12 +338,12 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
             .length;
         if (isDownloadInactive) {
           return textContainer(
-            title: "Active Connections",
+            title: loc.activeConnections,
             value: "",
           );
         }
         return textContainer(
-          title: "Active Connections",
+          title: loc.activeConnections,
           value: "$activeConnections/${connections.length}",
         );
       },
@@ -363,7 +360,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
               estimatedRemaining.substring(0, estimatedRemaining.indexOf(","));
         }
         return textContainer(
-          title: "Time Remaining",
+          title: loc.timeRemaining,
           value: isDownloadInactive ? "" : estimatedRemaining,
         );
       },
@@ -375,7 +372,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
       selector: (_, provider) =>
           provider.downloads[widget.downloadId]!.transferRate,
       builder: (context, transferRate, child) => textContainer(
-        title: "Speed",
+        title: loc.speed,
         value: isDownloadInactive ? "" : transferRate,
       ),
     );
@@ -384,9 +381,9 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
   Widget textContainer({required String title, required String value}) {
     return Container(
       height: 80,
-      width: 150,
+      width: 160,
       decoration: BoxDecoration(
-        color: theme.alertDialogTheme.itemContainerBackgroundColor,
+        color: theme.alertDialogTheme.surfaceColor,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Padding(
@@ -395,13 +392,13 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(title, style: TextStyle(color: Colors.white60)),
+            Text(title, style: TextStyle(color: theme.textColor)),
             const SizedBox(height: 5),
             Text(
               value,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white,
+                color: theme.textColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -421,9 +418,9 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
         final completedSizeStr =
             convertByteToReadableStr((totalSize * progress).toInt());
         return Text(
-          "$completedSizeStr of $totalSizeStr",
-          style: const TextStyle(
-            color: Colors.white70,
+          "$completedSizeStr ${loc.of_} $totalSizeStr",
+          style: TextStyle(
+            color: theme.textColor,
           ),
         );
       },
@@ -438,8 +435,8 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
           progress == 1
               ? '${(progress * 100).toStringAsFixed(0)}%'
               : '${(progress * 100).toStringAsFixed(2)}%',
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: theme.textColor,
             fontWeight: FontWeight.bold,
           )),
     );

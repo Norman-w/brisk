@@ -1,3 +1,4 @@
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/widget/base/rounded_outlined_button.dart';
 import 'package:flutter/material.dart';
@@ -22,11 +23,11 @@ class _AppExitDialogState extends State<AppExitDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-        Provider.of<ThemeProvider>(context).activeTheme.alertDialogTheme;
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
+    final loc = AppLocalizations.of(context)!;
     return AlertDialog(
-      backgroundColor: theme.backgroundColor,
-      surfaceTintColor: theme.backgroundColor,
+      backgroundColor: theme.alertDialogTheme.backgroundColor,
+      surfaceTintColor: theme.alertDialogTheme.backgroundColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -52,7 +53,7 @@ class _AppExitDialogState extends State<AppExitDialog> {
           ),
           SizedBox(width: 10),
           Text(
-            "Choose Action",
+            loc.chooseAction,
             style: TextStyle(
               color: theme.textColor,
               fontWeight: FontWeight.bold,
@@ -69,21 +70,24 @@ class _AppExitDialogState extends State<AppExitDialog> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(
-              "Choose what you'd like to do with the application",
+              loc.appChooseActionDescription,
+              style: TextStyle(
+                color: theme.textHintColor,
+              ),
             ),
             const SizedBox(height: 20),
             Column(
               children: [
                 RoundedOutlinedButton(
                   mainAxisAlignment: MainAxisAlignment.start,
-                  text: "Exit Application",
-                  icon: Icon(
-                    Icons.power_settings_new_rounded,
-                    color: Colors.white54,
-                  ),
-                  textColor: Colors.white,
+                  text: loc.btn_exitApplication,
+                  mainAxisSize: MainAxisSize.max,
+                  iconHoverColor: theme.widgetTheme.iconColor,
+                  icon: Icons.power_settings_new_rounded,
+                  textColor: theme.textColor,
+                  iconColor: theme.widgetTheme.iconColor,
                   borderColor: Colors.transparent,
-                  backgroundColor: theme.itemContainerBackgroundColor,
+                  backgroundColor: theme.alertDialogTheme.surfaceColor,
                   hoverBackgroundColor: Color.fromRGBO(220, 38, 38, 1),
                   height: 45,
                   width: 500,
@@ -95,13 +99,16 @@ class _AppExitDialogState extends State<AppExitDialog> {
                 SizedBox(height: 10),
                 RoundedOutlinedButton(
                   mainAxisAlignment: MainAxisAlignment.start,
-                  text: "Minimize To System Tray",
+                  mainAxisSize: MainAxisSize.max,
+                  text: loc.btn_minimizeToTray,
                   height: 45,
-                  icon: Icon(Icons.minimize_rounded, color: Colors.white54),
-                  textColor: Colors.white,
+                  icon: Icons.minimize_rounded,
+                  iconColor: theme.widgetTheme.iconColor,
+                  textColor: theme.textColor,
                   borderColor: Colors.transparent,
                   hoverBackgroundColor: Color.fromRGBO(53, 89, 143, 1),
-                  backgroundColor: theme.itemContainerBackgroundColor,
+                  iconHoverColor: theme.widgetTheme.iconColor,
+                  backgroundColor: theme.alertDialogTheme.surfaceColor,
                   width: 500,
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -111,12 +118,18 @@ class _AppExitDialogState extends State<AppExitDialog> {
                 SizedBox(height: 10),
                 RoundedOutlinedButton(
                   mainAxisAlignment: MainAxisAlignment.start,
-                  text: "Cancel",
+                  mainAxisSize: MainAxisSize.max,
+                  text: loc.btn_cancel,
                   height: 45,
-                  icon: Icon(Icons.close_rounded, color: Colors.white54),
-                  textColor: Colors.white,
+                  icon: Icons.close_rounded,
+                  iconColor: theme.widgetTheme.iconColor,
+                  textColor: theme.textColor,
                   borderColor: Colors.transparent,
-                  backgroundColor: theme.itemContainerBackgroundColor,
+                  backgroundColor: theme.alertDialogTheme.surfaceColor,
+                  iconHoverColor: theme.widgetTheme.iconColor,
+                  hoverBackgroundColor:
+                      theme.alertDialogTheme.cancelColor.hoverBackgroundColor,
+                  hoverTextColor: theme.textColor,
                   width: 500,
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -138,7 +151,10 @@ class _AppExitDialogState extends State<AppExitDialog> {
                         () => rememberChecked = value!,
                       ),
                     ),
-                    Text("Remember this decision"),
+                    Text(
+                      loc.rememberThisDecision,
+                      style: TextStyle(color: theme.textColor),
+                    ),
                   ],
                 )
               ],

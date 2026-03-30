@@ -1,58 +1,63 @@
 import 'package:flutter/material.dart';
 
 class ApplicationTheme {
+  final bool isLight;
   final String themeId;
-
   final SideMenuTheme sideMenuTheme;
   final TopMenuTheme topMenuTheme;
   final DownloadGridTheme downloadGridTheme;
   final QueuePageTheme queuePageTheme;
   final SettingTheme settingTheme;
-  final DownloadInfoTheme downloadInfoDialogTheme;
-  final Color rightClickMenuBackgroundColor;
-  AlertDialogTheme alertDialogTheme;
-  DownloadProgressDialogTheme downloadProgressDialogTheme;
+  final WidgetTheme widgetTheme;
+  final ContextMenuTheme contextMenuTheme;
+  final FontWeight fontWeight;
+  final Color textColor;
+  final Color textHintColor;
+  final Color subtleTextColor;
+  final AlertDialogTheme alertDialogTheme;
+  final DownloadProgressDialogTheme downloadProgressDialogTheme;
 
-  ApplicationTheme({
+  const ApplicationTheme({
     required this.themeId,
+    required this.isLight,
+    required this.fontWeight,
+    this.textColor = Colors.white,
+    this.textHintColor = Colors.white70,
+    this.subtleTextColor = Colors.white70,
     required this.sideMenuTheme,
+    required this.widgetTheme,
     required this.topMenuTheme,
     required this.downloadGridTheme,
     required this.queuePageTheme,
     required this.settingTheme,
     required this.alertDialogTheme,
     required this.downloadProgressDialogTheme,
-    required this.downloadInfoDialogTheme,
-    this.rightClickMenuBackgroundColor = const Color.fromRGBO(20, 20, 20, 1),
+    this.contextMenuTheme = const ContextMenuTheme(),
   });
 }
 
-class DownloadInfoTheme {
-  final ButtonColor openFileColor;
-  final ButtonColor openFileLocationColor;
-  final ButtonColor downloadColor;
-  final ButtonColor addToListColor;
-  final ButtonColor cancelColor;
+class ContextMenuTheme {
+  final Color backgroundColor;
+  final Color itemDisabledTextColor;
+  final Color itemTextColor;
+  final Color borderColor;
 
-  DownloadInfoTheme({
-    required this.openFileColor,
-    required this.openFileLocationColor,
-    required this.downloadColor,
-    required this.addToListColor,
-    required this.cancelColor,
+  const ContextMenuTheme({
+    this.backgroundColor = const Color.fromRGBO(20, 20, 20, 1),
+    this.itemDisabledTextColor = Colors.grey,
+    this.borderColor = Colors.transparent,
+    this.itemTextColor = Colors.white,
   });
 }
 
 class QueuePageTheme {
   final Color backgroundColor;
-  final Color queueItemIconColor;
   final Color queueItemTitleTextColor;
   final Color queueItemTitleDetailsTextColor;
   final Color queueItemHoverColor;
 
-  QueuePageTheme({
+  const QueuePageTheme({
     required this.backgroundColor,
-    required this.queueItemIconColor,
     required this.queueItemTitleTextColor,
     required this.queueItemTitleDetailsTextColor,
     required this.queueItemHoverColor,
@@ -70,8 +75,9 @@ class SideMenuTheme {
   final Color expansionTileExpandedColor;
   final Color expansionTileItemHoverColor;
   final Color expansionTileItemActiveColor;
+  final Color settingIconColor;
 
-  SideMenuTheme({
+  const SideMenuTheme({
     required this.backgroundColor,
     required this.briskLogoColor,
     required this.activeTabIconColor,
@@ -81,14 +87,20 @@ class SideMenuTheme {
     required this.expansionTileExpandedColor,
     required this.expansionTileItemHoverColor,
     required this.expansionTileItemActiveColor,
+    required this.settingIconColor,
     this.tabBackgroundColor = Colors.transparent,
   });
 }
 
 class TopMenuTheme {
   final Color backgroundColor;
+  final disabledButtonIconColor;
+  final Color disabledHoverColor;
+  final Color buttonTextColor;
+  final Color disabledButtonTextColor;
   final ButtonColor addUrlColor;
   final ButtonColor downloadColor;
+  final ButtonColor searchColor;
   final ButtonColor stopColor;
   final ButtonColor stopAllColor;
   final ButtonColor removeColor;
@@ -100,10 +112,11 @@ class TopMenuTheme {
   final ButtonColor stopQueueColor;
   final ButtonColor checkForUpdateColor;
 
-  TopMenuTheme({
+  const TopMenuTheme({
     required this.backgroundColor,
     required this.addUrlColor,
     required this.downloadColor,
+    required this.searchColor,
     required this.stopColor,
     required this.stopAllColor,
     required this.removeColor,
@@ -113,7 +126,11 @@ class TopMenuTheme {
     required this.startQueueColor,
     required this.stopQueueColor,
     required this.checkForUpdateColor,
+    this.buttonTextColor = Colors.white,
+    this.disabledButtonTextColor = const Color.fromRGBO(79, 79, 79, 1),
+    this.disabledButtonIconColor = const Color.fromRGBO(79, 79, 79, 0.5),
     required this.scheduleQueueColor,
+    required this.disabledHoverColor,
   });
 }
 
@@ -123,45 +140,49 @@ class DownloadGridTheme {
   final Color checkedRowColor;
   final Color borderColor;
   final Color rowColor;
+  final Color rowTextColor;
+  final Color titleColumnTextColor;
 
-  DownloadGridTheme({
+  const DownloadGridTheme({
     required this.backgroundColor,
     required this.activeRowColor,
     required this.checkedRowColor,
     required this.borderColor,
     required this.rowColor,
+    required this.rowTextColor,
+    required this.titleColumnTextColor,
   });
 }
 
 class AlertDialogTheme {
   final Color backgroundColor;
-  final Color textColor;
   final Color iconColor;
-  final ButtonColor addButtonColor;
-  final ButtonColor cancelButtonColor;
+  final ButtonColor acceptButtonColor;
+  final ButtonColor declineButtonColor;
   final ButtonColor deleteConfirmColor;
   final ButtonColor deleteCancelColor;
-  final Color itemContainerBackgroundColor;
-  final TextFieldColor urlFieldColor;
+  final ButtonColor primaryMiscButtonColor;
+  final ButtonColor secondaryMiscButtonColor;
+  final ButtonColor cancelColor;
+  final Color surfaceColor;
   final CheckBoxColor checkBoxColor;
   final Color innerContainerBorderColor;
-  final Color placeHolderIconColor;
-  final Color placeHolderTextColor;
+  final Color borderColor;
 
-  AlertDialogTheme({
+  const AlertDialogTheme({
+    this.borderColor = Colors.transparent,
     required this.backgroundColor,
-    required this.textColor,
     required this.iconColor,
-    required this.addButtonColor,
-    required this.cancelButtonColor,
-    required this.urlFieldColor,
+    required this.acceptButtonColor,
+    required this.declineButtonColor,
     required this.checkBoxColor,
     required this.innerContainerBorderColor,
-    required this.placeHolderIconColor,
-    required this.placeHolderTextColor,
     required this.deleteConfirmColor,
     required this.deleteCancelColor,
-    required this.itemContainerBackgroundColor,
+    required this.cancelColor,
+    required this.surfaceColor,
+    required this.primaryMiscButtonColor,
+    required this.secondaryMiscButtonColor,
   });
 }
 
@@ -169,20 +190,13 @@ class CheckBoxColor {
   final Color borderColor;
   final Color activeColor;
 
-  CheckBoxColor({
+  const CheckBoxColor({
     required this.borderColor,
     required this.activeColor,
   });
 }
 
 class DownloadProgressDialogTheme {
-  final Color windowBackgroundColor;
-  final Color detailsContainerBorderColor;
-  final Color detailsContainerBackgroundColor;
-  final Color detailsContainerTextColor;
-  final Color infoContainerBorderColor;
-  final Color infoContainerBackgroundColor;
-  final Color infoContainerTextColor;
   final Color assemblingStatusProgressColor;
   final Color validatingFilesStatusProgressColor;
   final ProgressIndicatorColor totalProgressColor;
@@ -190,14 +204,7 @@ class DownloadProgressDialogTheme {
   final ButtonColor pauseColor;
   final ButtonColor resumeColor;
 
-  DownloadProgressDialogTheme({
-    required this.windowBackgroundColor,
-    required this.detailsContainerBorderColor,
-    required this.detailsContainerBackgroundColor,
-    required this.detailsContainerTextColor,
-    required this.infoContainerBorderColor,
-    required this.infoContainerBackgroundColor,
-    required this.infoContainerTextColor,
+  const DownloadProgressDialogTheme({
     required this.pauseColor,
     required this.resumeColor,
     this.totalProgressColor = const ProgressIndicatorColor(
@@ -224,54 +231,62 @@ class ProgressIndicatorColor {
 }
 
 class SettingTheme {
-  final windowBackgroundColor;
   final SettingPageTheme pageTheme;
   final SettingSideMenuTheme sideMenuTheme;
-  final ButtonColor cancelButtonColor;
   final ButtonColor saveButtonColor;
   final ButtonColor resetDefaultsButtonColor;
 
-  SettingTheme({
-    required this.windowBackgroundColor,
+  const SettingTheme({
     required this.pageTheme,
     required this.sideMenuTheme,
-    required this.cancelButtonColor,
     required this.saveButtonColor,
     required this.resetDefaultsButtonColor,
   });
 }
 
 class SettingPageTheme {
-  final Color pageBackgroundColor;
   final Color groupBackgroundColor;
   final Color groupTitleTextColor;
   final Color titleTextColor;
-  final Color itemAccentColor;
-  final SettingWidgetColor widgetColor;
 
-  SettingPageTheme({
-    required this.pageBackgroundColor,
+  const SettingPageTheme({
     required this.groupBackgroundColor,
     required this.groupTitleTextColor,
     required this.titleTextColor,
-    required this.widgetColor,
-    required this.itemAccentColor,
   });
 }
 
-class SettingWidgetColor {
+class WidgetTheme {
   final SwitchColor switchColor;
+  final ToolTipColor toolTipColor;
   final DropDownColor dropDownColor;
   final TextFieldColor textFieldColor;
-  Color launchIconColor;
-  final Color aboutIconColor;
+  final Color iconColor;
+  final Color tooltipIconColor;
+  final ButtonColor showHideButtonColor;
+  final ButtonColor iconButtonColor;
 
-  SettingWidgetColor({
+  const WidgetTheme({
     required this.switchColor,
     required this.dropDownColor,
     required this.textFieldColor,
-    this.launchIconColor = Colors.white,
-    required this.aboutIconColor,
+    required this.showHideButtonColor,
+    required this.iconButtonColor,
+    this.toolTipColor = const ToolTipColor(),
+    this.iconColor = Colors.white70,
+    this.tooltipIconColor = Colors.white,
+  });
+}
+
+class ToolTipColor {
+  final Color backgroundColor;
+  final Color textColor;
+  final Color borderColor;
+
+  const ToolTipColor({
+    this.backgroundColor = const Color.fromRGBO(33, 33, 33, 1),
+    this.textColor = Colors.white,
+    this.borderColor = Colors.transparent,
   });
 }
 
@@ -280,38 +295,46 @@ class TextFieldColor {
   final Color borderColor;
   final Color? fillColor;
   final Color textColor;
-  Color? cursorColor;
-  Color? hoverColor;
+  final Color iconColor;
+  final Color cursorColor;
+  final Color hintTextColor;
+  final Color? hoverColor;
 
-  TextFieldColor({
+  const TextFieldColor({
     required this.focusBorderColor,
     required this.borderColor,
+    this.hintTextColor = Colors.grey,
     this.fillColor,
+    this.iconColor = Colors.white60,
     required this.textColor,
-    this.cursorColor,
+    this.cursorColor = Colors.white,
     this.hoverColor,
   });
 }
 
 class DropDownColor {
   final Color dropDownBackgroundColor;
-  final Color ItemTextColor;
+  final Color itemTextColor;
+  final Color iconColor;
 
-  DropDownColor({
+  const DropDownColor({
+    this.iconColor = Colors.white70,
     required this.dropDownBackgroundColor,
-    required this.ItemTextColor,
+    required this.itemTextColor,
   });
 }
 
 class SwitchColor {
-  Color? activeColor;
-  Color? hoverColor;
-  Color? focusColor;
+  final Color? activeColor;
+  final Color? hoverColor;
+  final Color? focusColor;
+  final Color? inactiveTrackColor;
 
-  SwitchColor({
+  const SwitchColor({
     this.activeColor,
     this.hoverColor,
     this.focusColor,
+    this.inactiveTrackColor,
   });
 }
 
@@ -320,14 +343,16 @@ class SettingSideMenuTheme {
   final Color activeTabBackgroundColor;
   final Color activeTabIconColor;
   final Color inactiveTabIconColor;
-  final Color inactiveTabHoverBackgroundColor;
+  final Color tabHoverBackgroundColor;
+  final Color tabTextColor;
 
-  SettingSideMenuTheme({
+  const SettingSideMenuTheme({
     required this.backgroundColor,
     required this.activeTabBackgroundColor,
     required this.activeTabIconColor,
     required this.inactiveTabIconColor,
-    required this.inactiveTabHoverBackgroundColor,
+    required this.tabHoverBackgroundColor,
+    this.tabTextColor = Colors.white,
   });
 }
 

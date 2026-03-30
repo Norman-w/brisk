@@ -1,5 +1,7 @@
 import 'package:brisk/db/hive_util.dart';
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/model/download_queue.dart';
+import 'package:brisk/provider/pluto_grid_util.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/widget/base/delete_confirmation_dialog.dart';
 import 'package:brisk/widget/queue/queue_details_window.dart';
@@ -14,24 +16,34 @@ class QueueListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final queueTheme =
-        Provider.of<ThemeProvider>(context).activeTheme.queuePageTheme;
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
+    final loc = AppLocalizations.of(context)!;
     return Material(
       type: MaterialType.transparency,
       child: ListTile(
-        hoverColor: queueTheme.queueItemHoverColor,
+        hoverColor: theme.queuePageTheme.queueItemHoverColor,
         onTap: () => onQueueTap(context),
         leading: Padding(
           padding: EdgeInsets.only(left: 10),
           child: Icon(
             Icons.queue_rounded,
-            color: queueTheme.queueItemIconColor,
+            color: theme.widgetTheme.iconColor,
           ),
         ),
-        title: Text(queue.name, style: TextStyle(color: Colors.white)),
+        title: Text(
+          queue.name == "Main" ? loc.mainQueue : queue.name,
+          style: TextStyle(
+            color: theme.queuePageTheme.queueItemTitleTextColor,
+            fontWeight: theme.fontWeight,
+          ),
+        ),
         subtitle: Text(
-          "${queue.downloadItemsIds == null ? 0 : queue.downloadItemsIds!.length} Downloads in queue",
-          style: TextStyle(color: queueTheme.queueItemTitleDetailsTextColor),
+          loc.downloadsInQueue(
+            queue.downloadItemsIds == null ? 0 : queue.downloadItemsIds!.length,
+          ),
+          style: TextStyle(
+            color: theme.queuePageTheme.queueItemTitleDetailsTextColor,
+          ),
         ),
         trailing: SizedBox(
           width: 100,
@@ -40,7 +52,10 @@ class QueueListItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               IconButton(
-                icon: Icon(Icons.more_vert_rounded, color: Colors.white),
+                icon: Icon(
+                  Icons.more_vert_rounded,
+                  color: theme.widgetTheme.iconColor,
+                ),
                 onPressed: () => onDetailsTap(context),
               ),
               queue.name == "Main"
@@ -62,13 +77,16 @@ class QueueListItem extends StatelessWidget {
       barrierDismissible: false,
       context: context,
       builder: (context) => DeleteConfirmationDialog(
-          onConfirmPressed: () async => await provider.deleteQueue(queue),
-          title: "Are you sure you want to delete ${queue.name} queue?"),
+        onConfirmPressed: () async => await provider.deleteQueue(queue),
+        title:
+            AppLocalizations.of(context)!.deleteQueueConfirmation(queue.name),
+      ),
     );
   }
 
   void onQueueTap(BuildContext context) {
     final provider = Provider.of<QueueProvider>(context, listen: false);
+    PlutoGridUtil.removeFilters();
     provider.setQueueTopMenu(false);
     provider.setDownloadQueueTopMenu(true);
     provider.setQueueTabSelected(false);

@@ -1,23 +1,20 @@
 import 'dart:io';
 
-import 'package:brisk/constants/download_type.dart';
-import 'package:brisk/download_engine/download_status.dart';
 import 'package:brisk/db/hive_util.dart';
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/model/download_item.dart';
-import 'package:brisk/download_engine/model/download_item_model.dart';
-import 'package:brisk/download_engine/message/download_progress_message.dart';
 import 'package:brisk/model/file_metadata.dart';
 import 'package:brisk/provider/pluto_grid_util.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/util/download_addition_ui_util.dart';
-import 'package:brisk/util/readability_util.dart';
-import 'package:brisk/util/settings_cache.dart';
-import 'package:brisk/widget/base/closable_window.dart';
+import 'package:brisk/util/download_engine_util.dart';
+import 'package:brisk/setting/settings_cache.dart';
 import 'package:brisk/widget/base/error_dialog.dart';
 import 'package:brisk/widget/base/outlined_text_field.dart';
 import 'package:brisk/widget/base/rounded_outlined_button.dart';
 import 'package:brisk/widget/base/scrollable_dialog.dart';
 import 'package:brisk/widget/download/multi_download_addition_grid.dart';
+import 'package:brisk_download_engine/brisk_download_engine.dart';
 import 'package:dartx/dartx.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +28,6 @@ import '../../util/file_util.dart';
 class MultiDownloadAdditionDialog extends StatefulWidget {
   List<FileInfo> fileInfos = [];
   late DownloadRequestProvider provider;
-  TextEditingController txtController = TextEditingController();
   bool checkboxEnabled = false;
 
   MultiDownloadAdditionDialog(this.fileInfos);
@@ -43,18 +39,31 @@ class MultiDownloadAdditionDialog extends StatefulWidget {
 
 class _MultiDownloadAdditionDialogState
     extends State<MultiDownloadAdditionDialog> {
+  late AppLocalizations loc;
+  TextEditingController savePathController = TextEditingController();
+
+  @override
+  void dispose() {
+    savePathController.dispose();
+    super.dispose();
+  }
+
   Widget build(BuildContext context) {
     widget.provider =
         Provider.of<DownloadRequestProvider>(context, listen: false);
-    final theme =
-        Provider.of<ThemeProvider>(context).activeTheme.alertDialogTheme;
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
     final size = MediaQuery.of(context).size;
+    loc = AppLocalizations.of(context)!;
     return ScrollableDialog(
       title: Padding(
         padding: const EdgeInsets.all(15),
         child: Text(
-          "Add Download",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          loc.addDownload,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: theme.textColor,
+          ),
         ),
       ),
       width: 600,
@@ -62,7 +71,7 @@ class _MultiDownloadAdditionDialogState
       scrollButtonVisible: true,
       scrollviewHeight: 500,
       scrollViewWidth: 600,
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: theme.alertDialogTheme.backgroundColor,
       content: Container(
         height: 500,
         width: 600,
@@ -107,8 +116,11 @@ class _MultiDownloadAdditionDialogState
                             setState(() => widget.checkboxEnabled = value!),
                       ),
                       Text(
-                        "Custom Save Path",
-                        style: TextStyle(color: Colors.white60),
+                        loc.customSavePath,
+                        style: TextStyle(
+                          color: theme.textColor,
+                          fontWeight: theme.fontWeight,
+                        ),
                       ),
                     ],
                   ),
@@ -124,7 +136,7 @@ class _MultiDownloadAdditionDialogState
                               horizontal: 12,
                             ),
                             enabled: widget.checkboxEnabled,
-                            controller: widget.txtController,
+                            controller: savePathController,
                           ),
                         ),
                       ),
@@ -134,14 +146,19 @@ class _MultiDownloadAdditionDialogState
                         text: null,
                         height: 40,
                         width: 56,
-                        icon: SvgPicture.asset(
+                        customIcon: SvgPicture.asset(
                           'assets/icons/folder-open.svg',
-                          colorFilter:
-                              ColorFilter.mode(Colors.white54, BlendMode.srcIn),
+                          colorFilter: ColorFilter.mode(
+                            theme.widgetTheme.iconColor,
+                            BlendMode.srcIn,
+                          ),
                         ),
-                        textColor: Colors.white,
+                        textColor: Colors.transparent,
                         borderColor: Colors.transparent,
-                        backgroundColor: theme.itemContainerBackgroundColor,
+                        hoverBackgroundColor: theme
+                            .widgetTheme.iconButtonColor.hoverBackgroundColor,
+                        backgroundColor:
+                            theme.widgetTheme.iconButtonColor.backgroundColor,
                         onPressed: widget.checkboxEnabled
                             ? onSelectSavePathPressed
                             : null,
@@ -156,17 +173,15 @@ class _MultiDownloadAdditionDialogState
       ),
       buttons: [
         RoundedOutlinedButton.fromButtonColor(
-          theme.cancelButtonColor,
-          width: 100,
+          theme.alertDialogTheme.declineButtonColor,
           onPressed: () => Navigator.of(context).pop(),
-          text: "Cancel",
+          text: loc.btn_cancel,
         ),
         const SizedBox(width: 10),
         RoundedOutlinedButton.fromButtonColor(
-          theme.addButtonColor,
-          width: 100,
+          theme.alertDialogTheme.acceptButtonColor,
           onPressed: onAddPressed,
-          text: "Add",
+          text: loc.btn_add,
         ),
       ],
     );
@@ -201,22 +216,20 @@ class _MultiDownloadAdditionDialogState
       initialDirectory: SettingsCache.saveDir.path,
     );
     if (customSavePath != null) {
-      setState(() => widget.txtController.text = customSavePath);
+      setState(() => savePathController.text = customSavePath);
     }
   }
 
   void onAddPressed() async {
-    if (savePathExists && !Directory(widget.txtController.text).existsSync()) {
+    if (savePathExists && !Directory(savePathController.text).existsSync()) {
       showDialog(
         context: context,
         builder: (context) => ErrorDialog(
-          width: 320,
-          height: 150,
-          textHeight: 40,
-          title: "Invalid Path",
-          description: "The selected custom path is invalid!",
-          descriptionHint:
-              "Please check again and make sure the target folder exists.",
+          title: loc.err_invalidPath_title,
+          description: loc.err_invalidPath_savePath_description,
+          descriptionHint: loc.err_invalidPath_descriptionHint,
+          height: 180,
+          width: 380,
         ),
       );
       return;
@@ -229,7 +242,7 @@ class _MultiDownloadAdditionDialogState
         (rule) => rule.isSatisfiedByDownloadItem(item),
       );
       if (savePathExists) {
-        item.filePath = path.join(widget.txtController.text, item.fileName);
+        item.filePath = path.join(savePathController.text, item.fileName);
       } else if (rule != null) {
         item.filePath = FileUtil.getFilePath(
           item.fileName,
@@ -240,7 +253,7 @@ class _MultiDownloadAdditionDialogState
       await HiveUtil.instance.addDownloadItem(item);
       widget.provider.insertRows([
         DownloadProgressMessage(
-          downloadItem: DownloadItemModel.fromDownloadItem(item),
+          downloadItem: buildFromDownloadItem(item),
         )
       ]);
     }
@@ -266,7 +279,7 @@ class _MultiDownloadAdditionDialogState
   }
 
   bool get savePathExists =>
-      widget.checkboxEnabled && widget.txtController.text.isNotNullOrBlank;
+      widget.checkboxEnabled && savePathController.text.isNotNullOrBlank;
 
   bool checkDownloadDuplication(DownloadItem item) {
     return DownloadAdditionUiUtil.checkDownloadDuplication(item.fileName);

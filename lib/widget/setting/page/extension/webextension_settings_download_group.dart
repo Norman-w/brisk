@@ -1,4 +1,6 @@
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/theme_provider.dart';
+import 'package:brisk/widget/browser_extension/get_browser_extension_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -10,34 +12,38 @@ class WebExtensionSettingsDownloadGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textWidth = MediaQuery.of(context).size.width * 0.6 * 0.5;
-    final theme =
-        Provider.of<ThemeProvider>(context).activeTheme.settingTheme.pageTheme;
+    // final textWidth = MediaQuery.of(context).size.width * 0.6 * 0.5;
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
+    final loc = AppLocalizations.of(context)!;
     return SettingsGroup(
-      height: 130,
-      title: "Download Brisk Browser Extension",
+      title: loc.settings_downloadBrowserExtension,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
-              width: textWidth,
+            Expanded(
               child: Text(
-                "Click the link to open browser extension download page",
-                style: TextStyle(color: theme.titleTextColor),
+                loc.settings_downloadBrowserExtension_installExtension,
+                style: TextStyle(
+                  color: theme.settingTheme.pageTheme.titleTextColor,
+                  fontSize: 14,
+                  fontWeight: theme.fontWeight,
+                ),
               ),
             ),
-            const Spacer(),
             IconButton(
-              onPressed: () => launchUrl(
-                Uri.parse('https://github.com/AminBhst/brisk-browser-extension'),
+              onPressed: () => showDialog(
+                context: context,
+                builder: (context) => GetBrowserExtensionDialog(),
               ),
               icon: Icon(
-                Icons.launch,
-                color: theme.widgetColor.launchIconColor,
+                Icons.install_desktop_rounded,
+                color: theme.widgetTheme.iconColor,
+                size: 28,
               ),
-            )
+            ),
           ],
-        )
+        ),
       ],
     );
   }

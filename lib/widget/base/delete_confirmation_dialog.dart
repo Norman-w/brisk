@@ -1,3 +1,4 @@
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/widget/base/rounded_outlined_button.dart';
 import 'package:flutter/material.dart';
@@ -15,13 +16,13 @@ class DeleteConfirmationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-        Provider.of<ThemeProvider>(context).activeTheme.alertDialogTheme;
+    final theme = Provider.of<ThemeProvider>(context).activeTheme;
+    final loc = AppLocalizations.of(context)!;
     return AlertDialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: theme.alertDialogTheme.backgroundColor,
       title: Row(
         children: [
           Container(
@@ -44,11 +45,12 @@ class DeleteConfirmationDialog extends StatelessWidget {
           ),
           SizedBox(width: 10),
           Text(
-            "Confirm Action",
+            loc.confirmAction,
             style: TextStyle(
-                color: theme.textColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 20),
+              color: theme.textColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
           ),
         ],
       ),
@@ -56,22 +58,20 @@ class DeleteConfirmationDialog extends StatelessWidget {
         width: 400,
         child: Text(
           title,
-          style: const TextStyle(fontSize: 17),
+          style: TextStyle(fontSize: 17, color: theme.textColor),
         ),
       ),
       actions: [
         RoundedOutlinedButton.fromButtonColor(
-          theme.deleteCancelColor,
-          text: "Cancel",
-          width: 80,
+          theme.alertDialogTheme.deleteCancelColor,
+          text: loc.btn_cancel,
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
         RoundedOutlinedButton.fromButtonColor(
-          theme.deleteConfirmColor,
-          text: "Yes, Delete",
-          width: 101,
+          theme.alertDialogTheme.deleteConfirmColor,
+          text: loc.btn_deleteConfirm,
           onPressed: () {
             Navigator.of(context).pop();
             onConfirmPressed();

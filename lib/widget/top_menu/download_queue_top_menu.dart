@@ -1,14 +1,14 @@
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/pluto_grid_check_row_provider.dart';
 import 'package:brisk/provider/queue_provider.dart';
 import 'package:brisk/provider/theme_provider.dart';
-import 'package:brisk/util/responsive_util.dart';
+import 'package:brisk/util/ui_util.dart';
 import 'package:brisk/widget/download/queue_schedule_handler.dart';
 import 'package:brisk/widget/queue/schedule_dialog.dart';
 import 'package:brisk/widget/top_menu/top_menu_button.dart';
 import 'package:brisk/widget/top_menu/top_menu_util.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:brisk/download_engine/download_command.dart';
 import 'package:brisk/db/hive_util.dart';
 import 'package:brisk/provider/download_request_provider.dart';
 import 'package:brisk/provider/pluto_grid_util.dart';
@@ -31,9 +31,10 @@ class DownloadQueueTopMenu extends StatelessWidget {
     final topMenuTheme =
         Provider.of<ThemeProvider>(context).activeTheme.topMenuTheme;
     final size = MediaQuery.of(context).size;
+    final loc = AppLocalizations.of(context)!;
     return Container(
       width: resolveWindowWidth(size),
-      height: 70,
+      height: topMenuHeight,
       color: topMenuTheme.backgroundColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -43,61 +44,72 @@ class DownloadQueueTopMenu extends StatelessWidget {
             padding: const EdgeInsets.only(left: 20),
             child: TopMenuButton(
               onTap: () => onSchedulePressed(context),
-              title: 'Schedule',
-              fontSize: 12,
+              title: loc.btn_schedule,
+              fontSize: 14,
               icon: Icon(
+                size: 28,
                 Icons.schedule_rounded,
                 color: topMenuTheme.startQueueColor.iconColor,
               ),
               onHoverColor: topMenuTheme.startQueueColor.hoverBackgroundColor,
+              isEnabled: true,
             ),
           ),
           TopMenuButton(
             onTap: onStopAllPressed,
-            title: 'Stop Queue',
-            fontSize: 12,
+            title: loc.btn_stopQueue,
+            fontSize: 14,
             icon: Icon(
+              size: 28,
               Icons.stop_circle_rounded,
               color: topMenuTheme.stopQueueColor.iconColor,
             ),
             onHoverColor: topMenuTheme.stopQueueColor.hoverBackgroundColor,
+            isEnabled: true,
           ),
           TopMenuButton(
             onTap: isDownloadButtonEnabled(provider) ? onDownloadPressed : null,
-            title: 'Download',
+            title: loc.download,
+            fontSize: 14,
             icon: Icon(
+              size: 28,
               Icons.download_rounded,
               color: isDownloadButtonEnabled(provider)
                   ? topMenuTheme.downloadColor.iconColor
                   : Color.fromRGBO(79, 79, 79, 0.5),
             ),
             onHoverColor: topMenuTheme.downloadColor.hoverBackgroundColor,
-            textColor: isDownloadButtonEnabled(provider)
-                ? topMenuTheme.downloadColor.textColor
-                : Color.fromRGBO(79, 79, 79, 1),
+            isEnabled: isDownloadButtonEnabled(provider),
           ),
           TopMenuButton(
             onTap: isPauseButtonEnabled(provider) ? onStopPressed : null,
-            title: 'Stop',
+            title: loc.stop,
+            fontSize: 14,
             icon: Icon(
+              size: 28,
               Icons.stop_rounded,
               color: isPauseButtonEnabled(provider)
                   ? topMenuTheme.stopColor.iconColor
                   : Color.fromRGBO(79, 79, 79, 0.5),
             ),
             onHoverColor: topMenuTheme.stopColor.hoverBackgroundColor,
-            textColor: isPauseButtonEnabled(provider)
-                ? topMenuTheme.stopColor.textColor
-                : Color.fromRGBO(79, 79, 79, 1),
+            isEnabled: isPauseButtonEnabled(provider),
           ),
           TopMenuButton(
-            onTap: () => onRemovePressed(context),
-            title: 'Remove',
+            onTap: PlutoGridUtil.selectedRowExists
+                ? () => onRemovePressed(context)
+                : null,
+            fontSize: 14,
+            title: loc.remove,
             icon: Icon(
+              size: 28,
               Icons.delete,
-              color: topMenuTheme.removeColor.iconColor,
+              color: PlutoGridUtil.selectedRowExists
+                  ? topMenuTheme.removeColor.iconColor
+                  : Colors.white10,
             ),
             onHoverColor: topMenuTheme.removeColor.hoverBackgroundColor,
+            isEnabled: PlutoGridUtil.selectedRowExists,
           ),
         ],
       ),
@@ -134,17 +146,17 @@ class DownloadQueueTopMenu extends StatelessWidget {
 
   void onDownloadPressed() {
     PlutoGridUtil.doOperationOnCheckedRows((id, _) {
-      provider.executeDownloadCommand(id, DownloadCommand.start);
+      provider.startDownload(id);
     });
   }
 
-  void onStopPressed() {
+  void onStopPressed() async {
     PlutoGridUtil.doOperationOnCheckedRows((id, _) {
       QueueScheduleHandler.runningDownloads.forEach((queue, ids) {
         if (ids.contains(id)) ids.remove(id);
       });
       QueueScheduleHandler.stoppedDownloads.add(id);
-      provider.executeDownloadCommand(id, DownloadCommand.pause);
+      provider.pauseDownload(id);
     });
   }
 
@@ -153,7 +165,7 @@ class DownloadQueueTopMenu extends StatelessWidget {
     QueueScheduleHandler.downloadCheckerTimer?.cancel();
     QueueScheduleHandler.downloadCheckerTimer = null;
     provider.downloads.forEach((id, _) {
-      provider.executeDownloadCommand(id, DownloadCommand.pause);
+      provider.pauseDownload(id);
       QueueScheduleHandler.stoppedDownloads.add(id);
     });
   }
@@ -171,8 +183,7 @@ class DownloadQueueTopMenu extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => DeleteConfirmationDialog(
-        title:
-            "Are you sure you want to remove the selected downloads from the queue?",
+        title: AppLocalizations.of(context)!.deletionFromQueueConfirmation,
         onConfirmPressed: () async {
           final queue = HiveUtil.instance.downloadQueueBox
               .get(queueProvider.selectedQueueId)!;

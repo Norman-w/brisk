@@ -1,13 +1,15 @@
-import 'package:brisk/download_engine/download_status.dart';
 import 'package:brisk/constants/file_type.dart';
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/pluto_grid_util.dart';
 import 'package:brisk/provider/settings_provider.dart';
 import 'package:brisk/provider/theme_provider.dart';
-import 'package:brisk/util/responsive_util.dart';
+import 'package:brisk/util/ui_util.dart';
+import 'package:brisk/widget/base/default_tooltip.dart';
 import 'package:brisk/widget/setting/setting_dialog.dart';
 import 'package:brisk/widget/side_menu/side_menu_expansion_tile.dart';
 import 'package:brisk/widget/side_menu/side_menu_item.dart';
 import 'package:brisk/widget/side_menu/side_menu_list_tile_item.dart';
+import 'package:brisk_download_engine/brisk_download_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -31,8 +33,9 @@ class _SideMenuState extends State<SideMenu> {
     final sideMenuTheme =
         Provider.of<ThemeProvider>(context).activeTheme.sideMenuTheme;
     final size = MediaQuery.of(context).size;
+    final loc = AppLocalizations.of(context)!;
     return Container(
-      width: resolveSideMenuWidth(size),
+      width: minimizedSideMenuWidth,
       height: double.infinity,
       color: sideMenuTheme.backgroundColor,
       child: Material(
@@ -40,9 +43,13 @@ class _SideMenuState extends State<SideMenu> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 10, top: 30),
+              padding: const EdgeInsetsDirectional.only(
+                start: 5,
+                top: 20,
+                bottom: 10,
+              ),
               child: SvgPicture.asset(
-                "assets/icons/logo.svg",
+                "assets/icons/logo-basic.svg",
                 height: 25,
                 width: 25,
                 colorFilter: ColorFilter.mode(
@@ -51,15 +58,15 @@ class _SideMenuState extends State<SideMenu> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
             SideMenuExpansionTile(
               title: 'Downloads',
               active: selectedTab == 0,
-              icon: Tooltip(
-                message: "All Downloads",
-                child: const Icon(
+              icon: DefaultTooltip(
+                message: loc.allDownloads,
+                child: Icon(
                   Icons.download_rounded,
-                  color: Colors.white,
+                  color: sideMenuTheme.tabIconColor,
                 ),
               ),
               onTap: () => onDownloadsPressed(queueProvider),
@@ -69,7 +76,7 @@ class _SideMenuState extends State<SideMenu> {
                   icon: SvgPicture.asset(
                     'assets/icons/archive.svg',
                     colorFilter:
-                    ColorFilter.mode(Colors.lightBlue, BlendMode.srcIn),
+                        ColorFilter.mode(Colors.lightBlue, BlendMode.srcIn),
                   ),
                   size: 32,
                   onTap: () => setGridFileTypeFilter(DLFileType.compressed),
@@ -81,7 +88,7 @@ class _SideMenuState extends State<SideMenu> {
                   icon: SvgPicture.asset(
                     'assets/icons/video_2.svg',
                     colorFilter:
-                    ColorFilter.mode(Colors.pinkAccent, BlendMode.srcIn),
+                        ColorFilter.mode(Colors.pinkAccent, BlendMode.srcIn),
                   ),
                   onTap: () => setGridFileTypeFilter(DLFileType.video),
                   active: selectedExpansionTileItemTab == 1,
@@ -90,8 +97,8 @@ class _SideMenuState extends State<SideMenu> {
                   text: 'Programs',
                   icon: SvgPicture.asset(
                     'assets/icons/program.svg',
-                    colorFilter: ColorFilter.mode(
-                        Colors.indigoAccent, BlendMode.srcIn),
+                    colorFilter:
+                        ColorFilter.mode(Colors.indigoAccent, BlendMode.srcIn),
                   ),
                   size: 30,
                   onTap: () => setGridFileTypeFilter(DLFileType.program),
@@ -101,8 +108,8 @@ class _SideMenuState extends State<SideMenu> {
                   text: 'Documents',
                   icon: SvgPicture.asset(
                     'assets/icons/document.svg',
-                    colorFilter:
-                        ColorFilter.mode(const Color(0xFF4CAF50), BlendMode.srcIn),
+                    colorFilter: ColorFilter.mode(
+                        const Color(0xFF4CAF50), BlendMode.srcIn),
                   ),
                   onTap: () => setGridFileTypeFilter(DLFileType.documents),
                   active: selectedExpansionTileItemTab == 2,
@@ -112,7 +119,7 @@ class _SideMenuState extends State<SideMenu> {
                   icon: SvgPicture.asset(
                     'assets/icons/music.svg',
                     colorFilter:
-                    ColorFilter.mode(Colors.cyanAccent, BlendMode.srcIn),
+                        ColorFilter.mode(Colors.cyanAccent, BlendMode.srcIn),
                   ),
                   onTap: () => setGridFileTypeFilter(DLFileType.music),
                   active: selectedExpansionTileItemTab == 0,
@@ -121,11 +128,12 @@ class _SideMenuState extends State<SideMenu> {
             ),
             SideMenuItem(
               onTap: () => setUnfinishedGridFilter(queueProvider),
-              leading: Tooltip(
-                message: "Unfinished",
+              leading: DefaultTooltip(
+                message: loc.unfinishedDownloads,
                 child: SvgPicture.asset(
                   'assets/icons/unfinished.svg',
-                  colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  colorFilter: ColorFilter.mode(
+                      sideMenuTheme.tabIconColor, BlendMode.srcIn),
                 ),
               ),
               title: "Unfinished",
@@ -133,11 +141,11 @@ class _SideMenuState extends State<SideMenu> {
             ),
             SideMenuItem(
               onTap: () => setFinishedFilter(queueProvider),
-              leading: Tooltip(
-                message: "Finished",
-                child: const Icon(
+              leading: DefaultTooltip(
+                message: loc.finishedDownloads,
+                child: Icon(
                   Icons.download_done_rounded,
-                  color: Colors.white,
+                  color: sideMenuTheme.tabIconColor,
                 ),
               ),
               title: "Finished",
@@ -145,11 +153,11 @@ class _SideMenuState extends State<SideMenu> {
             ),
             SideMenuItem(
               onTap: () => onQueueTabPressed(queueProvider),
-              leading: Tooltip(
-                message: "Queues",
+              leading: DefaultTooltip(
+                message: loc.downloadQueues,
                 child: Icon(
                   Icons.queue,
-                  color: Colors.white,
+                  color: sideMenuTheme.tabIconColor,
                 ),
               ),
               title: "Queues",
@@ -159,12 +167,13 @@ class _SideMenuState extends State<SideMenu> {
             Padding(
               padding: const EdgeInsets.only(bottom: 20),
               child: IconButton(
-                  iconSize: 30,
-                  onPressed: () => onSettingPressed(context),
-                  icon: const Icon(
-                    Icons.settings,
-                    color: Colors.white,
-                  )),
+                iconSize: 30,
+                onPressed: () => onSettingPressed(context),
+                icon: Icon(
+                  Icons.settings,
+                  color: sideMenuTheme.settingIconColor,
+                ),
+              ),
             ),
           ],
         ),
@@ -207,7 +216,7 @@ class _SideMenuState extends State<SideMenu> {
   }
 
   void setGridFileTypeFilter(DLFileType fileType) {
-    PlutoGridUtil.setFilter("file_type", fileType.name);
+    PlutoGridUtil.addFilter("file_type", fileType.name);
     int? selected;
     switch (fileType) {
       case DLFileType.music:
@@ -232,7 +241,8 @@ class _SideMenuState extends State<SideMenu> {
   }
 
   void setUnfinishedGridFilter(QueueProvider queueProvider) {
-    PlutoGridUtil.setFilter(
+    PlutoGridUtil.removeFilters();
+    PlutoGridUtil.addFilter(
       "status",
       DownloadStatus.assembleComplete,
       negate: true,
@@ -247,7 +257,8 @@ class _SideMenuState extends State<SideMenu> {
   }
 
   void setFinishedFilter(QueueProvider queueProvider) {
-    PlutoGridUtil.setFilter("status", DownloadStatus.assembleComplete);
+    PlutoGridUtil.removeFilters();
+    PlutoGridUtil.addFilter("status", DownloadStatus.assembleComplete);
     setState(() {
       selectedTab = 2;
       selectedExpansionTileItemTab = null;

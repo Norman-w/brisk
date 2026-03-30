@@ -2,6 +2,7 @@ import 'package:brisk/constants/download_type.dart';
 import 'package:brisk/model/file_metadata.dart';
 import 'package:brisk/util/file_util.dart';
 import 'package:brisk/util/http_util.dart';
+import 'package:brisk/setting/settings_cache.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 
@@ -48,6 +49,15 @@ class DownloadItem extends HiveObject {
   @HiveField(13, defaultValue: "HTTP")
   String downloadType;
 
+  @HiveField(14)
+  String? referer;
+
+  @HiveField(15, defaultValue: [])
+  List<Map<String, String>> subtitles;
+
+  @HiveField(16, defaultValue: {})
+  Map<String, String> requestHeaders;
+
   DownloadItem({
     required this.uid,
     required this.fileName,
@@ -62,10 +72,21 @@ class DownloadItem extends HiveObject {
     this.status = "In Queue",
     this.extraInfo = const {},
     this.downloadType = "HTTP",
+    this.subtitles = const [],
+    this.requestHeaders = const {},
   });
 
-  void setM3u8Content(String m3u8Content) {
-    extraInfo["m3u8Content"] = m3u8Content;
+  factory DownloadItem.fromFileInfo(FileInfo fileInfo) {
+    final item = DownloadItem.fromUrl(fileInfo.url);
+    item.fileName = fileInfo.fileName;
+    item.fileType = FileUtil.detectFileType(item.fileName).name;
+    item.contentLength = fileInfo.contentLength;
+    item.supportsPause = fileInfo.supportsPause;
+    item.filePath = FileUtil.getFilePath(
+      item.fileName,
+      useTypeBasedSubDirs: SettingsCache.automaticFileSavePathCategorization,
+    );
+    return item;
   }
 
   factory DownloadItem.fromUrl(String url) {
@@ -81,13 +102,7 @@ class DownloadItem extends HiveObject {
     );
   }
 
-  factory DownloadItem.fromFileInfo(FileInfo fileInfo) {
-    final item = DownloadItem.fromUrl(fileInfo.url);
-    item.fileName = fileInfo.fileName;
-    item.fileType = FileUtil.detectFileType(item.fileName).name;
-    item.contentLength = fileInfo.contentLength;
-    item.supportsPause = fileInfo.supportsPause;
-    item.filePath = FileUtil.getFilePath(item.fileName);
-    return item;
+  void setM3u8Content(String m3u8Content) {
+    extraInfo["m3u8Content"] = m3u8Content;
   }
 }

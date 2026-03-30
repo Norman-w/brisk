@@ -1,11 +1,12 @@
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/model/file_metadata.dart';
 import 'package:brisk/provider/pluto_grid_check_row_provider.dart';
 import 'package:brisk/provider/pluto_grid_util.dart';
 import 'package:brisk/provider/theme_provider.dart';
+import 'package:brisk/theme/application_theme.dart';
 import 'package:brisk/util/readability_util.dart';
-import 'package:brisk/util/responsive_util.dart';
+import 'package:brisk/util/ui_util.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:provider/provider.dart';
 
@@ -28,10 +29,12 @@ class _DownloadGridState extends State<MultiDownloadAdditionGrid> {
   late List<PlutoColumn> columns;
   late List<PlutoRow> rows;
   PlutoGridCheckRowProvider? plutoProvider;
+  late ApplicationTheme theme;
 
   @override
   void didChangeDependencies() {
     initColumns(context);
+    theme = Provider.of<ThemeProvider>(context).activeTheme;
     super.didChangeDependencies();
   }
 
@@ -49,21 +52,22 @@ class _DownloadGridState extends State<MultiDownloadAdditionGrid> {
   }
 
   void initColumns(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     columns = [
       PlutoColumn(
         enableRowDrag: true,
         enableRowChecked: true,
         width: 490,
-        title: 'File Name',
+        title: loc.fileName,
         field: 'file_name',
         type: PlutoColumnType.text(),
         renderer: (rendererContext) =>
-            PlutoGridUtil.fileNameColumnRenderer(rendererContext),
+            PlutoGridUtil.fileNameColumnRenderer(rendererContext, theme),
       ),
       PlutoColumn(
         readOnly: true,
         width: 105,
-        title: 'Size',
+        title: loc.size,
         field: 'size',
         type: PlutoColumnType.text(),
       ),
@@ -73,8 +77,7 @@ class _DownloadGridState extends State<MultiDownloadAdditionGrid> {
   @override
   Widget build(BuildContext context) {
     initRows();
-    final downloadGridTheme =
-        Provider.of<ThemeProvider>(context).activeTheme.downloadGridTheme;
+    theme = Provider.of<ThemeProvider>(context).activeTheme;
     plutoProvider = Provider.of<PlutoGridCheckRowProvider>(
       context,
       listen: false,
@@ -87,19 +90,9 @@ class _DownloadGridState extends State<MultiDownloadAdditionGrid> {
         width: resolveWindowWidth(size),
         decoration: const BoxDecoration(color: Colors.black26),
         child: PlutoGrid(
-          key: UniqueKey(),
+          key: const ValueKey('multi-download-addition-grid'),
           mode: PlutoGridMode.selectWithOneTap,
-          configuration: PlutoGridConfiguration(
-            style: PlutoGridStyleConfig.dark(
-              activatedBorderColor: Colors.transparent,
-              borderColor: downloadGridTheme.borderColor,
-              gridBorderColor: downloadGridTheme.borderColor,
-              activatedColor: downloadGridTheme.activeRowColor,
-              gridBackgroundColor: downloadGridTheme.backgroundColor,
-              rowColor: downloadGridTheme.rowColor,
-              checkedColor: downloadGridTheme.checkedRowColor,
-            ),
-          ),
+          configuration: PlutoGridUtil.config(theme.downloadGridTheme),
           columns: columns,
           rows: rows,
           onSelected: (event) => PlutoGridUtil.handleRowSelection(

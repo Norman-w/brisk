@@ -1,10 +1,11 @@
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/widget/setting/base/settings_group.dart';
 import 'package:brisk/widget/setting/base/text_field_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../util/settings_cache.dart';
+import '../../../../setting/settings_cache.dart';
 
 class ConnectionRetryGroup extends StatefulWidget {
   const ConnectionRetryGroup({super.key});
@@ -14,16 +15,24 @@ class ConnectionRetryGroup extends StatefulWidget {
 }
 
 class _ConnectionRetryGroupState extends State<ConnectionRetryGroup> {
+  final connRetryCountController = TextEditingController(
+    text: SettingsCache.connectionRetryCount.toString(),
+  );
+
+  @override
+  void dispose() {
+    connRetryCountController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Provider.of<ThemeProvider>(context)
-        .activeTheme
-        .settingTheme
-        .pageTheme;
+    final theme =
+        Provider.of<ThemeProvider>(context).activeTheme.settingTheme.pageTheme;
     final size = MediaQuery.of(context).size;
+    final loc = AppLocalizations.of(context)!;
     return SettingsGroup(
-      height: 200,
-      title: "Connection Retry",
+      title: loc.settings_connectionRetry,
       children: [
         TextFieldSetting(
           onChanged: (value) => _onChanged(
@@ -33,16 +42,15 @@ class _ConnectionRetryGroupState extends State<ConnectionRetryGroup> {
           width: 50,
           textWidth: size.width * 0.6 * 0.32,
           icon: Text(
-            "-1 = infinite",
-            style: TextStyle(color: theme.titleTextColor),
+            "-1 = ${loc.infinite}",
+            style: TextStyle(color: theme.titleTextColor, fontSize: 14),
           ),
-          text: "Max connection retry count",
+          text: loc.settings_connectionRetry_maxConnectionRetryCount,
           keyboardType: const TextInputType.numberWithOptions(
             signed: true,
             decimal: false,
           ),
-          txtController: TextEditingController(
-              text: SettingsCache.connectionRetryCount.toString()),
+          txtController: connRetryCountController,
         ),
         const SizedBox(height: 10),
         TextFieldSetting(
@@ -52,10 +60,10 @@ class _ConnectionRetryGroupState extends State<ConnectionRetryGroup> {
           ),
           width: 75,
           textWidth: size.width * 0.6 * 0.32,
-          text: "Connection retry timeout",
+          text: loc.settings_connectionRetry_connectionRetryTimeout,
           icon: Text(
-            "seconds",
-            style: TextStyle(color: theme.titleTextColor),
+            loc.seconds,
+            style: TextStyle(color: theme.titleTextColor, fontSize: 14),
           ),
           txtController: TextEditingController(
               text: SettingsCache.connectionRetryTimeout.toString()),

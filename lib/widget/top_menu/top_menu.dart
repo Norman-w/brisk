@@ -1,30 +1,23 @@
-import 'dart:io';
-
-import 'package:brisk/constants/file_type.dart';
-import 'package:brisk/download_engine/download_command.dart';
-import 'package:brisk/db/hive_util.dart';
-import 'package:brisk/model/download_item.dart';
-import 'package:brisk/model/file_metadata.dart';
+import 'package:brisk/browser_extension/browser_extension_server.dart';
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/provider/pluto_grid_check_row_provider.dart';
 import 'package:brisk/provider/queue_provider.dart';
+import 'package:brisk/provider/search_bar_notifier_provider.dart';
 import 'package:brisk/provider/theme_provider.dart';
 import 'package:brisk/util/auto_updater_util.dart';
-import 'package:brisk/util/download_addition_ui_util.dart';
+import 'package:brisk/util/ui_util.dart';
+import 'package:brisk/widget/base/default_tooltip.dart';
+import 'package:brisk/widget/base/error_dialog.dart';
+import 'package:brisk/widget/base/info_dialog.dart';
 import 'package:brisk/widget/top_menu/top_menu_util.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:brisk/provider/pluto_grid_util.dart';
-import 'package:brisk/util/responsive_util.dart';
-import 'package:brisk/widget/base/checkbox_confirmation_dialog.dart';
 import 'package:brisk/widget/download/add_url_dialog.dart';
 import 'package:brisk/widget/top_menu/top_menu_button.dart';
 import 'package:flutter/material.dart';
-import 'package:pluto_grid/src/model/pluto_row.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
-import '../../download_engine/client/mock_http_client_proxy.dart';
 import '../../provider/download_request_provider.dart';
-import '../../util/file_util.dart';
+import '../browser_extension/get_browser_extension_dialog.dart';
 import '../queue/add_to_queue_window.dart';
 
 class TopMenu extends StatefulWidget {
@@ -36,8 +29,15 @@ class _TopMenuState extends State<TopMenu> {
   String url = '';
 
   late DownloadRequestProvider provider;
+  late AppLocalizations loc;
 
   TextEditingController txtController = TextEditingController();
+
+  @override
+  void dispose() {
+    txtController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,11 +45,12 @@ class _TopMenuState extends State<TopMenu> {
     final topMenuTheme =
         Provider.of<ThemeProvider>(context).activeTheme.topMenuTheme;
     Provider.of<PlutoGridCheckRowProvider>(context);
-    final queueProvider = Provider.of<QueueProvider>(context);
+    Provider.of<QueueProvider>(context);
+    loc = AppLocalizations.of(context)!;
     final size = MediaQuery.of(context).size;
     return Container(
       width: resolveWindowWidth(size),
-      height: 70,
+      height: topMenuHeight,
       color: topMenuTheme.backgroundColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -63,82 +64,108 @@ class _TopMenuState extends State<TopMenu> {
                 builder: (_) => AddUrlDialog(),
                 barrierDismissible: false,
               ),
-              title: 'Add URL',
+              title: loc.addUrl,
+              fontSize: 14,
               icon: Icon(
+                size: 28,
                 Icons.add_rounded,
                 color: topMenuTheme.addUrlColor.iconColor,
               ),
               onHoverColor: topMenuTheme.addUrlColor.hoverBackgroundColor,
-              textColor: topMenuTheme.addUrlColor.textColor,
+              isEnabled: true,
             ),
           ),
-          // TopMenuButton(
-          //   /// TODO comment in production
-          //   onTap: () => onMockDownloadPressed(context),
-          //   title: 'Mock',
-          //   icon: const Icon(Icons.not_started_outlined, color: Colors.red),
-          //   onHoverColor: Colors.red,
-          // ),
           TopMenuButton(
             onTap: isDownloadButtonEnabled(provider) ? onDownloadPressed : null,
-            title: 'Download',
+            title: loc.download,
+            fontSize: 14,
             icon: Icon(
+              size: 28,
               Icons.download_rounded,
               color: isDownloadButtonEnabled(provider)
                   ? topMenuTheme.downloadColor.iconColor
-                  : Color.fromRGBO(79, 79, 79, 0.5),
+                  : topMenuTheme.disabledButtonIconColor,
             ),
             onHoverColor: topMenuTheme.downloadColor.hoverBackgroundColor,
-            textColor: isDownloadButtonEnabled(provider)
-                ? topMenuTheme.downloadColor.textColor
-                : Color.fromRGBO(79, 79, 79, 1),
+            isEnabled: isDownloadButtonEnabled(provider),
           ),
           TopMenuButton(
             onTap: isPauseButtonEnabled(provider) ? onStopPressed : null,
-            title: 'Stop',
+            title: loc.stop,
+            fontSize: 14,
             icon: Icon(
+              size: 28,
               Icons.stop_rounded,
               color: isPauseButtonEnabled(provider)
                   ? topMenuTheme.stopColor.iconColor
-                  : Color.fromRGBO(79, 79, 79, 0.5),
+                  : topMenuTheme.disabledButtonIconColor,
             ),
             onHoverColor: topMenuTheme.stopColor.hoverBackgroundColor,
-            textColor: isPauseButtonEnabled(provider)
-                ? topMenuTheme.stopColor.textColor
-                : Color.fromRGBO(79, 79, 79, 1),
+            isEnabled: isPauseButtonEnabled(provider),
           ),
           TopMenuButton(
             onTap: PlutoGridUtil.selectedRowExists
                 ? () => PlutoGridUtil.onRemovePressed(context)
                 : null,
-            title: 'Remove',
+            title: loc.remove,
+            fontSize: 14,
             icon: Icon(
+              size: 28,
               Icons.delete,
               color: PlutoGridUtil.selectedRowExists
                   ? topMenuTheme.removeColor.iconColor
-                  : disabledButtonColor,
+                  : topMenuTheme.disabledButtonIconColor,
             ),
             onHoverColor: topMenuTheme.removeColor.hoverBackgroundColor,
-            textColor: PlutoGridUtil.selectedRowExists
-                ? topMenuTheme.removeColor.textColor
-                : disabledButtonTextColor,
+            isEnabled: PlutoGridUtil.selectedRowExists,
           ),
           TopMenuButton(
             onTap: PlutoGridUtil.selectedRowExists
                 ? () => onAddToQueuePressed(context)
                 : null,
-            title: 'Add To Queue',
+            title: loc.addToQueue,
             icon: Icon(
+              size: 26,
               Icons.queue,
               color: PlutoGridUtil.selectedRowExists
                   ? topMenuTheme.addToQueueColor.iconColor
-                  : disabledButtonColor,
+                  : topMenuTheme.disabledButtonIconColor,
             ),
-            fontSize: 10.5,
+            fontSize: 13,
             onHoverColor: topMenuTheme.addToQueueColor.hoverBackgroundColor,
-            textColor: PlutoGridUtil.selectedRowExists
-                ? topMenuTheme.addToQueueColor.textColor
-                : disabledButtonTextColor,
+            isEnabled: PlutoGridUtil.selectedRowExists,
+          ),
+          SizedBox(width: 5),
+          DefaultTooltip(
+            message: "ctrl+f",
+            child: TopMenuButton(
+              onTap: SearchBarNotifierProvider.instance.toggleShow,
+              title: loc.search,
+              fontSize: 14,
+              icon: Icon(
+                size: 28,
+                Icons.search_rounded,
+                color: topMenuTheme.searchColor.iconColor,
+              ),
+              onHoverColor: topMenuTheme.searchColor.hoverBackgroundColor,
+              isEnabled: true,
+            ),
+          ),
+          SizedBox(width: 5),
+          TopMenuButton(
+            title: loc.getExtension,
+            fontSize: 13,
+            icon: Icon(
+              size: 28,
+              Icons.extension,
+              color: topMenuTheme.extensionColor.iconColor,
+            ),
+            onTap: () => showDialog(
+              context: context,
+              builder: (context) => GetBrowserExtensionDialog(),
+            ),
+            onHoverColor: topMenuTheme.extensionColor.hoverBackgroundColor,
+            isEnabled: true,
           ),
           TopMenuButton(
             onTap: () => handleBriskUpdateCheck(
@@ -146,103 +173,84 @@ class _TopMenuState extends State<TopMenu> {
               showUpdateNotAvailableDialog: true,
               ignoreLastUpdateCheck: true,
             ),
-            title: 'Check for Update',
+            title: loc.checkForUpdate,
             icon: Icon(
+              size: 26,
               Icons.update,
               color: topMenuTheme.checkForUpdateColor.iconColor,
             ),
-            fontSize: 10.5,
+            fontSize: 12.5,
             onHoverColor: topMenuTheme.addToQueueColor.hoverBackgroundColor,
-            textColor: topMenuTheme.checkForUpdateColor.textColor,
+            isEnabled: true,
           ),
-          SizedBox(width: 5),
-          // Container(color: Colors.white, width: 1, height: 40),
           TopMenuButton(
-            title: 'Get Extension',
-            fontSize: 11,
+            title: loc.btn_restart_extension,
+            fontSize: 14,
             icon: Icon(
-              Icons.extension,
+              size: 28,
+              Icons.restart_alt_rounded,
               color: topMenuTheme.extensionColor.iconColor,
             ),
-            onTap: () => launchUrlString(
-              'https://github.com/AminBhst/brisk-browser-extension',
-            ),
+            onTap: () => restart_extension(),
             onHoverColor: topMenuTheme.extensionColor.hoverBackgroundColor,
-            textColor: topMenuTheme.extensionColor.textColor,
+            isEnabled: true,
           ),
-          // TopMenuButton(
-          //   title: 'Discord',
-          //   fontSize: 11.5,
-          //   icon: SvgPicture.asset(
-          //     "assets/icons/discord.svg",
-          //     height: 30,
-          //     width: 30,
-          //     colorFilter: ColorFilter.mode(
-          //       Color.fromRGBO(96, 100, 244,1),
-          //       BlendMode.srcIn,
-          //     ),
-          //   ),
-          //   onTap: () => launchUrlString(
-          //     'https://discord.gg/g8fwgZ84',
-          //   ),
-          //   onHoverColor: topMenuTheme.extensionColor.hoverBackgroundColor,
-          //   textColor: topMenuTheme.extensionColor.textColor,
-          // ),
-          SizedBox(width: 5),
-          // Container(color: Colors.white, width: 1, height: 40),
-          // TopMenuButton(
-          //   title: 'Build',
-          //   icon: Icon(
-          //     Icons.extension,
-          //     color: Colors.red,
-          //   ),
-          //   onTap: () {
-          //     final dlitem = HiveUtil.instance.downloadItemsBox.getAt(0);
-          //     final itemModel = DownloadItemModel.fromDownloadItem(dlitem!);
-          //     FileUtil.doooo(itemModel.uid);
-          //     assembleFile(
-          //         itemModel, SettingsCache.temporaryDir, SettingsCache.saveDir);
-          //     print("DONE");
-          //   },
-          // ),
         ],
       ),
     );
   }
 
-  Color get disabledButtonColor => Color.fromRGBO(79, 79, 79, 0.5);
-
-  Color get disabledButtonTextColor => Color.fromRGBO(79, 79, 79, 1);
-
   void onMockDownloadPressed(BuildContext context) async {
-    final item = DownloadItem.fromUrl(mockDownloadUrl);
-    item.contentLength = 65945577;
-    item.fileName = "Mozilla.Firefox.zip";
-    item.fileType = DLFileType.compressed.name;
-    item.supportsPause = true;
-    final fileInfo = FileInfo(
-      item.supportsPause,
-      item.fileName,
-      item.contentLength,
-    );
-    DownloadAdditionUiUtil.addDownload(item, fileInfo, context, false);
+    // final item = DownloadItem.fromUrl(mockDownloadUrl);
+    // item.contentLength = 65945577;
+    // item.fileName = "Mozilla.Firefox.zip";
+    // item.fileType = DLFileType.compressed.name;
+    // item.supportsPause = true;
+    // final fileInfo = FileInfo(
+    //   item.supportsPause,
+    //   item.fileName,
+    //   item.contentLength,
+    // );
+    // DownloadAdditionUiUtil.addDownload(item, fileInfo, context, false);
+  }
+
+  void restart_extension() async {
+    try {
+      await BrowserExtensionServer.restart(context);
+      showDialog(
+        context: context,
+        builder: (context) => InfoDialog(
+          titleText: loc.extension_restart_success,
+          titleIcon: Icon(Icons.done),
+          titleIconBackgroundColor: Colors.lightGreen,
+        ),
+      );
+    } catch (_) {
+      showDialog(
+        context: context,
+        builder: (context) => ErrorDialog(
+          width: 450,
+          title: loc.extension_restart_failed,
+        ),
+      );
+    }
   }
 
   void onDownloadPressed() async {
     PlutoGridUtil.doOperationOnCheckedRows((id, _) {
-      provider.executeDownloadCommand(id, DownloadCommand.start);
+      provider.startDownload(id);
     });
   }
 
   void onStopPressed() {
     PlutoGridUtil.doOperationOnCheckedRows((id, _) {
-      provider.executeDownloadCommand(id, DownloadCommand.pause);
+      provider.pauseDownload(id);
     });
   }
 
   void onStopAllPressed() {
     provider.downloads.forEach((id, _) {
-      provider.executeDownloadCommand(id, DownloadCommand.pause);
+      provider.pauseDownload(id);
     });
   }
 

@@ -1,8 +1,9 @@
+import 'package:brisk/l10n/app_localizations.dart';
 import 'package:brisk/widget/setting/base/settings_group.dart';
 import 'package:brisk/widget/setting/base/switch_setting.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../util/settings_cache.dart';
+import '../../../../setting/settings_cache.dart';
 
 class NotificationSettingsGroup extends StatefulWidget {
   const NotificationSettingsGroup({super.key});
@@ -15,18 +16,18 @@ class NotificationSettingsGroup extends StatefulWidget {
 class _NotificationSettingsGroupState extends State<NotificationSettingsGroup> {
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return SettingsGroup(
-      height: 170,
-      title: "Notification",
+      title: loc.settings_notification,
       children: [
         SwitchSetting(
-          text: "Notification on download completion",
+          text: loc.settings_notification_onDownloadCompletion,
           switchValue: SettingsCache.notificationOnDownloadCompletion,
           onChanged: (val) => setState(
               () => SettingsCache.notificationOnDownloadCompletion = val),
         ),
         SwitchSetting(
-          text: "Notification on download failure",
+          text: loc.settings_notification_onDownloadFailure,
           switchValue: SettingsCache.notificationOnDownloadFailure,
           onChanged: (val) =>
               setState(() => SettingsCache.notificationOnDownloadFailure = val),

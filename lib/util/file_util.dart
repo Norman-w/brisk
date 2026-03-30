@@ -13,7 +13,7 @@ import 'package:path/path.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../constants/file_type.dart';
-import 'settings_cache.dart';
+import '../setting/settings_cache.dart';
 
 class FileUtil {
   static final versionedFileRegex = RegExp('.*_\d*');
@@ -28,7 +28,7 @@ class FileUtil {
     Directory tempDir =
         Platform.isLinux ? await linuxDefaultTempDir : await defaultTempDir;
     defaultTempFileDir = tempDir;
-    if (savePath != tempDir.path) {
+    if (savePath?.value != defaultTempFileDir.path) {
       completer.complete(tempDir);
       return completer.future;
     }
@@ -52,7 +52,7 @@ class FileUtil {
     final downloadDir = await getDownloadsDirectory();
     final savePath = await HiveUtil.getSetting(SettingOptions.savePath);
     defaultSaveDir = Directory(join(downloadDir!.path, 'Brisk'));
-    if (savePath != downloadDir.path) {
+    if (savePath?.value != defaultSaveDir.path) {
       completer.complete(defaultSaveDir);
       return completer.future;
     }
@@ -132,19 +132,17 @@ class FileUtil {
   }
 
   /// Detects the [DLFileType] based on the file extension.
-  /// TODO : Read from setting cache
   static DLFileType detectFileType(String fileName) {
-    final type = extension(fileName.toLowerCase()).replaceAll(".", "");
-    if (FileExtensions.document.contains(type)) {
+    final type = extension(fileName.toLowerCase()).replaceFirst(".", "");
+    if (SettingsCache.documentFormats.any((f) => type.contains(f))) {
       return DLFileType.documents;
-    } else if (FileExtensions.program.contains(type)) {
+    } else if (SettingsCache.programFormats.any((f) => type.contains(f))) {
       return DLFileType.program;
-    } else if (FileExtensions.compressed.contains(type) ||
-        fileName.endsWith("tar.gz")) {
+    } else if (SettingsCache.compressedFormats.any((f) => type.contains(f))) {
       return DLFileType.compressed;
-    } else if (FileExtensions.music.contains(type)) {
+    } else if (SettingsCache.musicFormats.any((f) => type.contains(f))) {
       return DLFileType.music;
-    } else if (FileExtensions.video.contains(type)) {
+    } else if (SettingsCache.videoFormats.any((f) => type.contains(f))) {
       return DLFileType.video;
     } else {
       return DLFileType.other;
@@ -207,7 +205,7 @@ class FileUtil {
     } else if (fileType == DLFileType.compressed.name) {
       return Colors.blue;
     } else if (fileType == DLFileType.documents.name) {
-      return  const Color(0xFF4CAF50);
+      return const Color(0xFF4CAF50);
     } else if (fileType == DLFileType.program.name) {
       return Colors.indigoAccent;
     } else {
@@ -215,8 +213,8 @@ class FileUtil {
     }
   }
 
-  static void deleteDownloadTempDirectory(int id) {
-    final path = join(defaultTempFileDir.path, id.toString());
+  static void deleteDownloadTempDirectory(String uid) {
+    final path = join(defaultTempFileDir.path, uid);
     final dir = Directory(path);
     if (dir.existsSync()) {
       dir.deleteSync(recursive: true);
@@ -227,6 +225,29 @@ class FileUtil {
     final subDir = _fileTypeToFolderName(detectFileType(fileName));
     final filePath = join(SettingsCache.saveDir.path, subDir, fileName);
     return File(filePath).existsSync();
+  }
+
+  static bool isFilePathInvalid(String filePath) {
+    if (filePath.endsWith(separator)) return true;
+    final segments = split(filePath)..removeAt(0);
+    return segments.any(isFileNameInvalid);
+  }
+
+  static bool isFileNameInvalid(String? name) {
+    if (name == null || name.trim().isEmpty) return true;
+    final invalidChars = RegExp(r'[<>:"/\\|?*\x00-\x1F]');
+    if (invalidChars.hasMatch(name)) return true;
+    if (name.endsWith(' ') || name.endsWith('.')) return true;
+    final reservedNames = <String>{
+      'CON',
+      'PRN',
+      'AUX',
+      'NUL',
+      for (int i = 1; i <= 9; i++) ...{'COM$i', 'LPT$i'},
+    };
+    final baseName = name.split('.').first.toUpperCase();
+    if (reservedNames.contains(baseName)) return true;
+    return false;
   }
 }
 
